@@ -58,11 +58,11 @@ def test_capture_unknown_order_returns_404():
     finally:
         db.close()
 
-def test_paypal_simulator_mode_create_and_capture():
+@pytest.mark.asyncio
+async def test_paypal_simulator_mode_create_and_capture():
     settings.PAYPAL_MOCK_SIMULATOR = True
     db = SessionLocal()
     try:
-        # Create order
         req = PayPalOrderCreateRequest(
             amount=125.0,
             currency="USD",
@@ -70,15 +70,14 @@ def test_paypal_simulator_mode_create_and_capture():
             customer_email="tester@example.com",
             customer_name="Test Runner"
         )
-        order_data = asyncio.run(create_paypal_order(req, None, db))
+        order_data = await create_paypal_order(req, None, db)
         order_id = order_data.paypal_order_id
         assert order_id is not None
         assert order_data.verified_by_backend is True
         assert order_data.amount == 125.0
         assert order_data.currency == "USD"
 
-        # Capture order
-        cap_res = asyncio.run(capture_paypal_order(order_id, None, db))
+        cap_res = await capture_paypal_order(order_id, None, db)
         assert cap_res.status == "COMPLETED"
         assert cap_res.capture_id is not None
         assert cap_res.risk_evaluation is not None
@@ -88,7 +87,8 @@ def test_paypal_simulator_mode_create_and_capture():
     finally:
         db.close()
 
-def test_update_paypal_credentials():
+@pytest.mark.asyncio
+async def test_update_paypal_credentials():
     db = SessionLocal()
     try:
         creds = PayPalCredentialsUpdateRequest(
@@ -96,7 +96,7 @@ def test_update_paypal_credentials():
             client_secret="test_secret_demo_sandbox_67890",
             mock_simulator=True
         )
-        res = asyncio.run(update_paypal_credentials(creds, None, db))
+        res = await update_paypal_credentials(creds, None, db)
         assert "client_id_preview" in res
         assert "test_cli" in res["client_id_preview"]
     finally:

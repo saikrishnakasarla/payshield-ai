@@ -45,7 +45,7 @@ class PayPalService:
         return settings.PAYPAL_MOCK_SIMULATOR
 
     async def get_access_token(self) -> Optional[str]:
-        if not self.is_configured():
+        if not self.is_configured() or self.is_mock_mode():
             return None
 
         auth_str = f"{self.effective_client_id}:{self.effective_client_secret}"
@@ -58,7 +58,7 @@ class PayPalService:
         data = {"grant_type": "client_credentials"}
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=3.0) as client:
                 res = await client.post(f"{self.base_url}/v1/oauth2/token", headers=headers, data=data)
                 if res.status_code == 200:
                     return res.json().get("access_token")
@@ -78,7 +78,9 @@ class PayPalService:
         currency = currency.upper().strip()
 
         # If explicit mock simulator is forced, use simulator
-        token = await self.get_access_token() if not settings.PAYPAL_MOCK_SIMULATOR else None
+        token = None
+        if not self.is_mock_mode():
+            token = await self.get_access_token()
         
         # Real PayPal Sandbox Call if configured
         if token:
@@ -154,7 +156,9 @@ class PayPalService:
         Captures authorized payment from PayPal Sandbox or completes simulation.
         Validates capture status server-side.
         """
-        token = await self.get_access_token() if not settings.PAYPAL_MOCK_SIMULATOR else None
+        token = None
+        if not self.is_mock_mode() and not order_id.startswith("PAYPAL-MOCK-"):
+            token = await self.get_access_token()
 
         if token and not order_id.startswith("PAYPAL-MOCK-"):
             headers = {
