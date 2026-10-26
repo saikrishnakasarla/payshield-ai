@@ -63,12 +63,49 @@ export interface Transaction {
   review_notes?: string;
   reviewed_at?: string;
   reviewer?: string;
+  // Multi-gateway fields
+  provider?: string;
+  provider_transaction_id?: string;
+  provider_order_id?: string;
+  payment_method?: string;
   // ML & multi-signal telemetry
   ml_fraud_probability?: number;
   hybrid_score?: number;
   account_age_days?: number;
   failed_attempts_24h?: number;
   feature_attributions_json?: string;
+}
+
+export interface PaymentProviderStatus {
+  provider: 'PAYPAL' | 'STRIPE' | 'RAZORPAY' | 'ADYEN';
+  display_name: string;
+  is_configured: boolean;
+  mock_mode: boolean;
+  supported_methods: string[];
+  currencies: string[];
+  description: string;
+}
+
+export interface MultiPaymentVerifyResult {
+  success: boolean;
+  status: string;
+  provider: string;
+  transaction_id: number;
+  reference_id: string;
+  provider_transaction_id?: string;
+  provider_order_id?: string;
+  amount: number;
+  currency: string;
+  payment_method: string;
+  risk_evaluation: {
+    score: number;
+    risk_level: RiskLevel;
+    ml_fraud_probability: number;
+    hybrid_score: number;
+    triggered_rules: TriggeredRule[];
+  };
+  ai_explanation?: any;
+  message: string;
 }
 
 export interface TriggeredRule {

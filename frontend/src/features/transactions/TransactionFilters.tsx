@@ -6,6 +6,8 @@ interface TransactionFiltersProps {
   onSearchChange: (val: string) => void;
   riskLevel: string;
   onRiskLevelChange: (val: string) => void;
+  provider?: string;
+  onProviderChange?: (val: string) => void;
   reviewStatus: string;
   onReviewStatusChange: (val: string) => void;
   sortBy: string;
@@ -19,6 +21,8 @@ export const TransactionFilters: React.FC<TransactionFiltersProps> = ({
   onSearchChange,
   riskLevel,
   onRiskLevelChange,
+  provider,
+  onProviderChange,
   reviewStatus,
   onReviewStatusChange,
   sortBy,
@@ -57,6 +61,22 @@ export const TransactionFilters: React.FC<TransactionFiltersProps> = ({
             <option value="HIGH" className="bg-[#121721]">High Risk</option>
             <option value="MEDIUM" className="bg-[#121721]">Medium Risk</option>
             <option value="LOW" className="bg-[#121721]">Low Risk</option>
+          </select>
+        </div>
+
+        {/* Provider Filter */}
+        <div className="flex-1 sm:flex-none flex items-center justify-between gap-1.5 bg-[#0B0E14] border border-[#1F293D] rounded-xl px-3 py-2 min-h-[44px] text-xs">
+          <span className="text-slate-400 font-mono text-[11px]">Provider:</span>
+          <select
+            value={provider || 'ALL'}
+            onChange={(e) => onProviderChange && onProviderChange(e.target.value)}
+            className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer font-mono"
+          >
+            <option value="ALL" className="bg-[#121721]">All Gateways</option>
+            <option value="PAYPAL" className="bg-[#121721]">PayPal</option>
+            <option value="STRIPE" className="bg-[#121721]">Stripe</option>
+            <option value="RAZORPAY" className="bg-[#121721]">Razorpay</option>
+            <option value="ADYEN" className="bg-[#121721]">Adyen</option>
           </select>
         </div>
 

@@ -24,6 +24,8 @@ def list_transactions(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
     search: Optional[str] = Query(None, description="Search by reference, email, customer, or IP"),
+    provider: Optional[str] = Query(None, description="Filter by provider: PAYPAL, STRIPE, RAZORPAY, ADYEN, or ALL"),
+    payment_status: Optional[str] = Query(None, description="Filter by status: COMPLETED, PENDING, DECLINED, FAILED, or ALL"),
     risk_level: Optional[str] = Query(None, pattern="^(ALL|LOW|MEDIUM|HIGH)$"),
     review_status: Optional[str] = Query(None),
     sort_by: str = Query("timestamp", pattern="^(timestamp|amount|risk_score)$"),
@@ -33,24 +35,30 @@ def list_transactions(
 ):
     query = db.query(Transaction)
 
-    # Per-user data isolation: authenticated users see their own transactions + synthetic demo data
-    # Always include PAYPAL_SANDBOX source so real PayPal captures are visible to everyone
+    verified_sources = ["PAYPAL_SANDBOX", "STRIPE_TEST", "RAZORPAY_TEST", "ADYEN_TEST"]
     if current_user:
         query = query.filter(
             or_(
                 Transaction.user_id == current_user.id,
                 Transaction.is_synthetic == True,
-                Transaction.source == "PAYPAL_SANDBOX"  # FIX: show PayPal sandbox captures
+                Transaction.source.in_(verified_sources)
             )
         )
     else:
-        # Unauthenticated guests: synthetic demos + PayPal sandbox captures
         query = query.filter(
             or_(
                 Transaction.is_synthetic == True,
-                Transaction.source == "PAYPAL_SANDBOX"  # FIX: show PayPal sandbox captures
+                Transaction.source.in_(verified_sources)
             )
         )
+
+    # Provider filter
+    if provider and provider.upper() != "ALL":
+        query = query.filter(Transaction.provider == provider.upper())
+
+    # Payment status filter
+    if payment_status and payment_status.upper() != "ALL":
+        query = query.filter(Transaction.payment_status == payment_status.upper())
 
     # Search filter
     if search and search.strip():

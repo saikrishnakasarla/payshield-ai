@@ -31,6 +31,7 @@ export const TransactionMonitor: React.FC<TransactionMonitorProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
   const [riskLevel, setRiskLevel] = useState<string>('ALL');
+  const [provider, setProvider] = useState<string>('ALL');
   const [reviewStatus, setReviewStatus] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<string>('timestamp');
   const [sortOrder, setSortOrder] = useState<string>('desc');
@@ -52,6 +53,7 @@ export const TransactionMonitor: React.FC<TransactionMonitorProps> = ({
         limit: 10,
         search,
         risk_level: riskLevel,
+        provider: provider !== 'ALL' ? provider : undefined,
         review_status: reviewStatus,
         sort_by: sortBy,
         sort_order: sortOrder,
@@ -223,6 +225,11 @@ export const TransactionMonitor: React.FC<TransactionMonitorProps> = ({
         riskLevel={riskLevel}
         onRiskLevelChange={(val) => {
           setRiskLevel(val);
+          setPage(1);
+        }}
+        provider={provider}
+        onProviderChange={(val) => {
+          setProvider(val);
           setPage(1);
         }}
         reviewStatus={reviewStatus}

@@ -51,6 +51,10 @@ class TransactionRead(BaseModel):
     items_json: str
     is_synthetic: bool
     source: str
+    provider: Optional[str] = "PAYPAL"
+    provider_transaction_id: Optional[str] = None
+    provider_order_id: Optional[str] = None
+    payment_method: Optional[str] = "CARD"
     risk_score: int
     risk_level: str
     ml_fraud_probability: Optional[float] = 0.0

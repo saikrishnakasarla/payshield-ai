@@ -29,7 +29,8 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClos
   const navItems = [
     { to: '/', label: 'Overview Dashboard', icon: LayoutGrid, desc: 'Real-time detection metrics' },
     { to: '/transactions', label: 'Transaction Monitor', icon: BellRing, desc: 'Continuous payment telemetry' },
-    { to: '/sandbox', label: 'PayPal Sandbox Checkout', icon: CreditCard, desc: 'Orders API & AI screening' },
+    { to: '/checkout', label: 'Multi-Gateway Checkout', icon: CreditCard, desc: 'PayPal, Stripe, Razorpay & Adyen' },
+    { to: '/sandbox', label: 'PayPal Sandbox Live', icon: CreditCard, desc: 'Orders API & AI screening' },
     { to: '/insights', label: 'Insights & Reports', icon: BarChart3, desc: 'Rule synthesis & CSV export' },
     { to: '/settings', label: 'Settings & Rules Engine', icon: SlidersHorizontal, desc: 'Heuristic thresholds' },
   ];

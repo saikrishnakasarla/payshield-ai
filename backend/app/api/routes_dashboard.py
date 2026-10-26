@@ -35,22 +35,22 @@ def get_dashboard_summary(
 
     # Base query for timeframe with data isolation
     query = db.query(Transaction).filter(Transaction.timestamp >= start_time)
-    # FIX: Always include PAYPAL_SANDBOX real transactions so captured payments appear
-    # in the dashboard regardless of login state or user_id assignment.
+    # Always include all verified payment providers in the dashboard
+    verified_sources = ["PAYPAL_SANDBOX", "STRIPE_TEST", "RAZORPAY_TEST", "ADYEN_TEST"]
     if current_user:
         query = query.filter(
             or_(
                 Transaction.user_id == current_user.id,
                 Transaction.is_synthetic == True,
-                Transaction.source == "PAYPAL_SANDBOX"  # Always show real PayPal captures
+                Transaction.source.in_(verified_sources)
             )
         )
     else:
-        # Unauthenticated: show synthetic demos + real PayPal sandbox captures
+        # Unauthenticated: show synthetic demos + real provider sandbox/test captures
         query = query.filter(
             or_(
                 Transaction.is_synthetic == True,
-                Transaction.source == "PAYPAL_SANDBOX"  # Always show real PayPal captures
+                Transaction.source.in_(verified_sources)
             )
         )
 

@@ -31,7 +31,11 @@ class Transaction(Base):
     items_json = Column(Text, default="[]") # JSON list of {name, price, quantity}
     
     is_synthetic = Column(Boolean, default=True)
-    source = Column(String(32), default="SYNTHETIC_DEMO") # SYNTHETIC_DEMO, PAYPAL_SANDBOX, PUBLIC_BENCHMARK
+    source = Column(String(32), default="SYNTHETIC_DEMO") # SYNTHETIC_DEMO, PAYPAL_SANDBOX, STRIPE_TEST, RAZORPAY_TEST, ADYEN_TEST, PUBLIC_BENCHMARK
+    provider = Column(String(32), default="PAYPAL", index=True) # PAYPAL, STRIPE, RAZORPAY, ADYEN, DEMO
+    provider_transaction_id = Column(String(128), nullable=True, index=True) # capture ID, ch_xxx, pay_xxx, pspReference
+    provider_order_id = Column(String(128), nullable=True, index=True) # order ID, pi_xxx, order_xxx
+    payment_method = Column(String(32), default="CARD") # CARD, UPI, WALLET, NETBANKING
     
     # Risk Engine Scores
     risk_score = Column(Integer, default=0) # Deterministic Rule Score (0 to 100)

@@ -430,3 +430,52 @@ export async function updatePayPalCredentials(credentials: {
   if (!res.ok) await handleResponseError(res, 'Failed to update PayPal credentials');
   return res.json();
 }
+
+// ==========================================
+// Multi-Gateway Universal Payments APIs
+// ==========================================
+export async function fetchPaymentProviders(): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/payments/providers`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) await handleResponseError(res, 'Failed to fetch payment providers');
+  return res.json();
+}
+
+export async function createUniversalPayment(data: {
+  provider: string;
+  amount: number;
+  currency: string;
+  customer_email: string;
+  customer_name: string;
+  item_name: string;
+  metadata?: Record<string, any>;
+}): Promise<any> {
+  const res = await fetch(`${API_BASE}/payments/create`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) await handleResponseError(res, 'Failed to create payment order');
+  return res.json();
+}
+
+export async function verifyUniversalPayment(data: {
+  provider: string;
+  payment_id: string;
+  order_id?: string;
+  amount?: number;
+  currency?: string;
+  customer_email?: string;
+  customer_name?: string;
+  test_scenario?: string;
+  payment_method?: string;
+}): Promise<any> {
+  const res = await fetch(`${API_BASE}/payments/verify`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) await handleResponseError(res, 'Failed to verify payment outcome');
+  return res.json();
+}

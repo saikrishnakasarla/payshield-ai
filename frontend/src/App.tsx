@@ -7,6 +7,7 @@ import { MobileHeaderBar } from './components/MobileHeaderBar';
 import { OverviewDashboard } from './pages/OverviewDashboard';
 import { TransactionMonitor } from './pages/TransactionMonitor';
 import { PayPalSandboxPage } from './pages/PayPalSandboxPage';
+import { UnifiedCheckoutPage } from './pages/UnifiedCheckoutPage';
 import { InsightsReports } from './pages/InsightsReports';
 import { SettingsDocs } from './pages/SettingsDocs';
 import { SignIn } from './pages/auth/SignIn';
@@ -64,6 +65,10 @@ export const App: React.FC = () => {
                 <Route
                   path="/sandbox"
                   element={<PayPalSandboxPage onSelectTransaction={handleSelectTransaction} />}
+                />
+                <Route
+                  path="/checkout"
+                  element={<UnifiedCheckoutPage onSelectTransaction={handleSelectTransaction} />}
                 />
                 <Route path="/insights" element={<InsightsReports />} />
                 <Route path="/settings" element={<SettingsDocs />} />

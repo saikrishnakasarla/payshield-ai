@@ -171,9 +171,21 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
               >
                 <td className="py-3.5 px-4 font-mono font-medium text-slate-100 flex items-center gap-2">
                   <span>{txn.reference_id}</span>
-                  {txn.source === 'PAYPAL_SANDBOX' ? (
+                  {txn.provider === 'STRIPE' ? (
+                    <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-mono">
+                      STRIPE
+                    </span>
+                  ) : txn.provider === 'RAZORPAY' ? (
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono">
+                      RAZORPAY
+                    </span>
+                  ) : txn.provider === 'ADYEN' ? (
+                    <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 text-[10px] font-mono">
+                      ADYEN
+                    </span>
+                  ) : txn.source === 'PAYPAL_SANDBOX' || txn.provider === 'PAYPAL' ? (
                     <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-mono">
-                      SANDBOX
+                      PAYPAL
                     </span>
                   ) : (
                     <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-mono border border-slate-700">

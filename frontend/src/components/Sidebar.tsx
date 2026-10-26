@@ -18,7 +18,8 @@ export const Sidebar: React.FC = () => {
   const navItems = [
     { to: '/', label: 'Overview Dashboard', icon: LayoutGrid },
     { to: '/transactions', label: 'Transaction Monitor', icon: BellRing },
-    { to: '/sandbox', label: 'PayPal Sandbox Checkout', icon: CreditCard },
+    { to: '/checkout', label: 'Multi-Gateway Checkout', icon: CreditCard },
+    { to: '/sandbox', label: 'PayPal Sandbox Live', icon: CreditCard },
     { to: '/insights', label: 'Insights & Reports', icon: BarChart3 },
     { to: '/settings', label: 'Settings & Rules Engine', icon: SlidersHorizontal },
   ];

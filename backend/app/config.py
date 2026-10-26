@@ -27,6 +27,23 @@ class Settings(BaseSettings):
     PAYPAL_BASE_URL: str = "https://api-m.sandbox.paypal.com"
     PAYPAL_WEBHOOK_ID: Optional[str] = None
     PAYPAL_MOCK_SIMULATOR: bool = True  # Enabled by default as graceful fallback when credentials not configured
+
+    # Stripe Configuration (Test Mode)
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = None
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+
+    # Razorpay Configuration (Test Mode)
+    RAZORPAY_KEY_ID: Optional[str] = None
+    RAZORPAY_KEY_SECRET: Optional[str] = None
+    RAZORPAY_WEBHOOK_SECRET: Optional[str] = None
+
+    # Adyen Configuration (Test Environment)
+    ADYEN_API_KEY: Optional[str] = None
+    ADYEN_CLIENT_KEY: Optional[str] = None
+    ADYEN_MERCHANT_ACCOUNT: Optional[str] = None
+    ADYEN_HMAC_KEY: Optional[str] = None
+    ADYEN_ENVIRONMENT: str = "TEST"
     
     # Configurable Risk Engine Heuristic Thresholds
     BASELINE_AMOUNT_MULTIPLIER: float = 3.0

@@ -15,6 +15,7 @@ from app.api.routes_auth import router as auth_router
 from app.api.routes_audit import router as audit_router
 from app.api.routes_benchmark import router as benchmark_router
 from app.api.routes_scenarios import router as scenarios_router
+from app.api.routes_payments import router as payments_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("payshield.app")
@@ -67,6 +68,7 @@ app.include_router(settings_router)
 app.include_router(audit_router)
 app.include_router(benchmark_router)
 app.include_router(scenarios_router)
+app.include_router(payments_router)
 
 @app.get("/")
 def root():
