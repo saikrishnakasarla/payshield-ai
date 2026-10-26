@@ -1,0 +1,66 @@
+{
+  "model_type": "RandomForestClassifier",
+  "n_estimators": 100,
+  "training_samples": 9000,
+  "test_samples": 3000,
+  "fraud_prevalence_pct": 1.5,
+  "metrics": {
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "precision": 1.0,
+    "recall": 0.9792,
+    "f1_score": 0.9895,
+    "false_positive_rate": 0.0,
+    "missed_fraud_rate": 0.0208,
+    "brier_score": 0.0007
+  },
+  "confusion_matrix": {
+    "true_negative": 2952,
+    "false_positive": 0,
+    "false_negative": 1,
+    "true_positive": 47
+  },
+  "system_comparison": {
+    "rules_only": {
+      "name": "Deterministic Heuristic Rules",
+      "precision": 0.122,
+      "recall": 0.8333,
+      "f1_score": 0.2128,
+      "false_positive_rate": 0.09756,
+      "missed_fraud_rate": 0.1667,
+      "description": "Standard fixed thresholds (velocity >= 3, amount >= 3.0x baseline, geo mismatch)."
+    },
+    "random_forest_ml": {
+      "name": "PayShield Random Forest (ML Only)",
+      "precision": 1.0,
+      "recall": 0.9792,
+      "f1_score": 0.9895,
+      "false_positive_rate": 0.0,
+      "missed_fraud_rate": 0.0208,
+      "description": "Trained multi-signal tree ensemble with probability calibration."
+    },
+    "hybrid_ensemble": {
+      "name": "PayShield Hybrid Ensemble (ML + Heuristics)",
+      "precision": 0.1429,
+      "recall": 1.0,
+      "f1_score": 0.25,
+      "false_positive_rate": 0.09756,
+      "missed_fraud_rate": 0.0,
+      "description": "Blended 60% ML probability + 40% rule verification for maximum coverage."
+    }
+  },
+  "feature_importances": {
+    "item_price_variance": 0.32,
+    "device_trust_score": 0.2093,
+    "prior_failed_attempts": 0.1648,
+    "velocity_10m": 0.1051,
+    "amount_to_baseline_ratio": 0.0681,
+    "burst_60s": 0.0521,
+    "account_age_days_norm": 0.0399,
+    "amount_normalized": 0.0307,
+    "geo_ip_mismatch": 0.0092,
+    "subthreshold_structuring": 0.0008
+  },
+  "trained_at": "2026-10-26T12:00:00Z",
+  "dataset_provenance": "Kaggle Credit Card Fraud & IEEE-CIS Transaction Distribution Benchmark"
+}
