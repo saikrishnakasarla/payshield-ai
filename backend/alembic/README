@@ -1,0 +1,37 @@
+# PayShield AI — Database Migrations (Alembic)
+
+This directory contains Alembic migration scripts for PayShield AI.
+
+## Migration Commands (Run from `backend/` directory)
+
+### 1. Apply all pending migrations to latest head:
+```bash
+python -m alembic upgrade head
+```
+
+### 2. View current revision:
+```bash
+python -m alembic current
+```
+
+### 3. View migration history:
+```bash
+python -m alembic history --verbose
+```
+
+### 4. Create a new migration revision:
+```bash
+python -m alembic revision -m "add_new_feature_table"
+```
+
+### 5. Rollback the last migration:
+```bash
+python -m alembic downgrade -1
+```
+
+## Database URL Configuration
+The database URL is resolved dynamically in `env.py`:
+1. `DATABASE_URL` environment variable if present (e.g. `postgresql://user:pass@host:5432/dbname`)
+2. `settings.DATABASE_URL` from `app.config` (defaults to `sqlite:///./payshield.db`)
+
+No database credentials are hardcoded in `alembic.ini`.

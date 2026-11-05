@@ -129,7 +129,10 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run backend test suite (28 passed tests)
+# Apply database migrations to head
+python -m alembic upgrade head
+
+# Run backend test suite (65 passed tests)
 pytest -v
 
 # Start FastAPI server on port 8000
@@ -137,7 +140,31 @@ python -m uvicorn app.main:app --reload --port 8000
 ```
 *Backend runs at `http://127.0.0.1:8000`. Interactive OpenAPI documentation available at `http://127.0.0.1:8000/docs`.*
 
-### 3. Frontend Setup
+### 3. Database Migrations (Alembic)
+PayShield AI uses Alembic for declarative, version-controlled database schema management:
+
+```bash
+cd backend
+
+# Apply all pending migrations
+python -m alembic upgrade head
+
+# Check current database revision status
+python -m alembic current
+
+# Inspect migration history
+python -m alembic history --verbose
+
+# Create a new migration revision
+python -m alembic revision -m "add_new_feature_table"
+
+# Rollback one migration revision
+python -m alembic downgrade -1
+```
+
+*Database URL resolution:* Resolved dynamically in `alembic/env.py` via `DATABASE_URL` (supporting both SQLite and PostgreSQL without hardcoded credentials).
+
+### 4. Frontend Setup
 In a new terminal:
 ```bash
 cd frontend
@@ -187,7 +214,7 @@ HIGH_RISK_SCORE=70
 
 ## 🧪 Testing Suite
 
-PayShield AI includes **28 automated unit and integration tests** covering risk scoring, rule triggers, amount validation, rate limiting, and API routes:
+PayShield AI includes **65 automated unit and integration tests** covering multi-gateway verification (PayPal, Stripe, Razorpay, Adyen), ML fraud probability, evasion defense, cryptographically chained audit trails, and API isolation:
 
 ```bash
 cd backend
