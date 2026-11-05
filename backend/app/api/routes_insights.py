@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
@@ -25,9 +25,15 @@ def get_insights(
 ):
     query = db.query(Transaction)
     if current_user:
-        query = query.filter(or_(Transaction.user_id == current_user.id, Transaction.is_synthetic == True))
+        if current_user.role != "admin":
+            query = query.filter(
+                or_(
+                    Transaction.user_id == current_user.id,
+                    Transaction.user_id.is_(None)
+                )
+            )
     else:
-        query = query.filter(Transaction.is_synthetic == True)
+        query = query.filter(Transaction.user_id.is_(None))
 
     txns = query.all()
     total_txns = len(txns)
@@ -38,8 +44,14 @@ def get_insights(
     med_count = sum(1 for t in txns if t.risk_level == "MEDIUM")
     high_count = sum(1 for t in txns if t.risk_level == "HIGH")
 
-    # Aggregate triggered rules
-    analyses = db.query(RiskAnalysis).all()
+    # Aggregate triggered rules scoped strictly to authorized transactions
+    txn_ids = [t.id for t in txns]
+    analyses = (
+        db.query(RiskAnalysis)
+        .filter(RiskAnalysis.transaction_id.in_(txn_ids))
+        .all()
+        if txn_ids else []
+    )
     rule_counts = {}
     for a in analyses:
         if a.triggered_rules_json:
@@ -105,17 +117,42 @@ def get_insights(
 
 @router.get("/export-csv")
 def export_transactions_csv(
+    merchant_id: Optional[int] = Query(None),
+    user_id: Optional[int] = Query(None),
     current_user: Optional[User] = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Exports all transactions, risk levels, and review decisions as a downloadable CSV.
+    Exports transactions, risk levels, and review decisions as a downloadable CSV.
+    Strictly enforces merchant ownership and prevents unauthorized data exports.
     """
+    target_id = merchant_id if merchant_id is not None else user_id
+    if target_id is not None:
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to export merchant data."
+            )
+        if current_user.id != target_id and current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access forbidden: You cannot export data for another merchant."
+            )
+
     query = db.query(Transaction)
     if current_user:
-        query = query.filter(or_(Transaction.user_id == current_user.id, Transaction.is_synthetic == True))
+        if current_user.role == "admin":
+            if target_id is not None:
+                query = query.filter(Transaction.user_id == target_id)
+        else:
+            query = query.filter(
+                or_(
+                    Transaction.user_id == current_user.id,
+                    Transaction.user_id.is_(None)
+                )
+            )
     else:
-        query = query.filter(Transaction.is_synthetic == True)
+        query = query.filter(Transaction.user_id.is_(None))
 
     txns = query.order_by(Transaction.timestamp.desc()).all()
     

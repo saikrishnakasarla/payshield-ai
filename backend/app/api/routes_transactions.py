@@ -286,6 +286,100 @@ def get_transaction(
         }
     }
 
+@router.get("/{transaction_id}/analysis", response_model=Dict[str, Any])
+def get_transaction_risk_analysis(
+    transaction_id: int,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieves the risk analysis for a specific transaction.
+    Enforces multi-merchant isolation: Merchant B cannot access Merchant A's risk analysis.
+    """
+    txn = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not txn:
+        raise HTTPException(status_code=404, detail="Transaction not found.")
+
+    if txn.user_id is not None:
+        if not current_user or (current_user.id != txn.user_id and current_user.role != "admin"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access forbidden: You do not have permission to view this risk analysis."
+            )
+
+    analysis = (
+        db.query(RiskAnalysis)
+        .filter(RiskAnalysis.transaction_id == txn.id)
+        .order_by(RiskAnalysis.created_at.desc())
+        .first()
+    )
+    if not analysis:
+        raise HTTPException(status_code=404, detail="No risk analysis found for this transaction.")
+
+    triggered_rules = []
+    if analysis.triggered_rules_json:
+        try:
+            triggered_rules = json.loads(analysis.triggered_rules_json)
+        except Exception:
+            triggered_rules = []
+
+    return {
+        "analysis_id": analysis.id,
+        "transaction_id": txn.id,
+        "reference_id": txn.reference_id,
+        "deterministic_score": analysis.deterministic_score,
+        "risk_level": analysis.risk_level,
+        "ml_fraud_probability": getattr(analysis, "ml_fraud_probability", 0.0),
+        "hybrid_score": getattr(analysis, "hybrid_score", analysis.deterministic_score),
+        "triggered_rules": triggered_rules,
+        "ai_summary": analysis.ai_summary,
+        "ai_explanation": analysis.ai_explanation,
+        "created_at": analysis.created_at.isoformat()
+    }
+
+@router.get("/risk-analysis/{analysis_id}", response_model=Dict[str, Any])
+def get_risk_analysis_by_id(
+    analysis_id: int,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieves a risk analysis by its primary ID.
+    Enforces multi-merchant isolation based on transaction ownership.
+    """
+    analysis = db.query(RiskAnalysis).filter(RiskAnalysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Risk analysis not found.")
+
+    txn = db.query(Transaction).filter(Transaction.id == analysis.transaction_id).first()
+    if txn and txn.user_id is not None:
+        if not current_user or (current_user.id != txn.user_id and current_user.role != "admin"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access forbidden: You do not have permission to view this risk analysis."
+            )
+
+    triggered_rules = []
+    if analysis.triggered_rules_json:
+        try:
+            triggered_rules = json.loads(analysis.triggered_rules_json)
+        except Exception:
+            triggered_rules = []
+
+    return {
+        "analysis_id": analysis.id,
+        "transaction_id": analysis.transaction_id,
+        "reference_id": txn.reference_id if txn else None,
+        "deterministic_score": analysis.deterministic_score,
+        "risk_level": analysis.risk_level,
+        "ml_fraud_probability": getattr(analysis, "ml_fraud_probability", 0.0),
+        "hybrid_score": getattr(analysis, "hybrid_score", analysis.deterministic_score),
+        "triggered_rules": triggered_rules,
+        "ai_summary": analysis.ai_summary,
+        "ai_explanation": analysis.ai_explanation,
+        "created_at": analysis.created_at.isoformat()
+    }
+
 @router.post("", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 async def create_transaction(
     txn_in: TransactionCreate,

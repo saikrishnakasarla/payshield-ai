@@ -13,7 +13,8 @@ from app.schemas.auth import (
 )
 from app.services.auth import (
     hash_password, verify_password, create_access_token,
-    generate_reset_token, hash_reset_token, get_current_user
+    generate_reset_token, hash_reset_token, get_current_user,
+    revoke_token, oauth2_scheme
 )
 from app.services.rate_limiter import rate_limit_auth_actions, rate_limit_password_reset
 from app.config import settings
@@ -110,8 +111,26 @@ def login(login_in: UserLogin, response: Response, db: Session = Depends(get_db)
 
 
 @router.post("/logout")
-def logout(response: Response):
-    response.delete_cookie("access_token")
+def logout(
+    request: Request,
+    response: Response,
+    token: Optional[str] = Depends(oauth2_scheme)
+):
+    auth_token = token
+    if not auth_token:
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.lower().startswith("bearer "):
+            auth_token = auth_header[7:].strip()
+
+    if not auth_token:
+        cookie_token = request.cookies.get("access_token")
+        if cookie_token:
+            auth_token = cookie_token[7:].strip() if cookie_token.startswith("Bearer ") else cookie_token.strip()
+
+    if auth_token:
+        revoke_token(auth_token)
+
+    response.delete_cookie(key="access_token", path="/")
     return {"message": "Successfully logged out."}
 
 

@@ -63,6 +63,11 @@ def update_thresholds(
     req: ThresholdUpdateRequest,
     current_user: User = Depends(get_current_user)
 ):
+    if current_user.role not in ("merchant", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Only merchants and administrators can update risk thresholds."
+        )
     settings.BASELINE_AMOUNT_MULTIPLIER = req.baseline_multiplier
     settings.VELOCITY_WINDOW_MINUTES = req.velocity_window_minutes
     settings.MEDIUM_RISK_SCORE = req.medium_risk_score
@@ -83,6 +88,11 @@ def reset_demo_database(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if current_user.role not in ("merchant", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Only merchants and administrators can reset the demo database."
+        )
     """
     Safely resets synthetic demo transactions back to clean seed state. Requires authenticated merchant or admin.
     """

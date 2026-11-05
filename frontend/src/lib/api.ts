@@ -85,8 +85,9 @@ export async function loginApi(data: {
 }
 
 export async function logoutApi(): Promise<void> {
+  const headers = getAuthHeaders();
   setStoredToken(null);
-  await fetch(`${API_BASE}/auth/logout`, { method: 'POST' }).catch(() => {});
+  await fetch(`${API_BASE}/auth/logout`, { method: 'POST', headers }).catch(() => {});
 }
 
 export async function fetchCurrentUser(): Promise<User> {
