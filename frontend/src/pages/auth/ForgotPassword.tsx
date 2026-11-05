@@ -7,7 +7,6 @@ import {
   ArrowRight, 
   AlertCircle, 
   CheckCircle2, 
-  ShieldCheck,
   ArrowLeft,
   Copy,
   Check
@@ -55,29 +54,27 @@ export const ForgotPassword: React.FC = () => {
   };
 
   const cardVariants: Variants = {
-    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 16 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
   };
 
   return (
-    <div className="min-h-[82vh] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[82vh] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 bg-slate-50">
       <motion.div 
-        className="w-full max-w-md bg-[#121721] border border-[#1F293D] rounded-3xl p-5 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden"
+        className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden"
         variants={cardVariants}
         initial="hidden"
         animate="visible"
       >
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-
         {/* Header */}
-        <div className="text-center space-y-2.5 mb-6">
-          <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border border-cyan-500/30 text-cyan-400 shadow-[0_0_20px_rgba(14,165,233,0.2)]">
+        <div className="text-center space-y-2 mb-6">
+          <div className="inline-flex p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-600">
             <KeyRound className="w-6 h-6" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-slate-100">
+          <h2 className="text-2xl font-bold font-sans tracking-tight text-slate-900">
             Password Recovery
           </h2>
-          <p className="text-xs text-slate-400 font-sans leading-relaxed">
+          <p className="text-xs text-slate-500 font-sans leading-relaxed">
             Enter your merchant email address. If an account is registered, instructions to reset your password will be provided.
           </p>
         </div>
@@ -85,42 +82,44 @@ export const ForgotPassword: React.FC = () => {
         {error && (
           <div 
             role="alert"
-            className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5 font-sans"
+            className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5 font-sans"
           >
-            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {message && (
-          <div className="mb-5 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-sans space-y-3">
+          <div className="mb-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-sans space-y-3">
             <div className="flex items-start gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
               <span>{message}</span>
             </div>
 
+            {/* Direct token convenience in Sandbox/Dev mode */}
             {resetToken && (
-              <div className="p-3.5 rounded-xl bg-[#0B0E14] border border-cyan-500/30 text-[11px] font-mono space-y-2">
-                <div className="flex items-center justify-between text-cyan-400 font-semibold">
-                  <span>Development / Fast-Track Token:</span>
-                  <button 
-                    type="button" 
+              <div className="mt-3 p-3 bg-white border border-emerald-200 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-emerald-800">
+                    Dev Mode Reset Token
+                  </span>
+                  <button
                     onClick={handleCopyToken}
-                    className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200 transition-colors"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 hover:text-emerald-900 focus-ring rounded px-1.5 py-0.5"
                   >
-                    {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     <span>{copied ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
-                <div className="break-all text-slate-300 bg-[#121721] p-2 rounded-lg border border-[#1F293D] select-all">
+                <code className="block text-[11px] font-mono break-all text-slate-700 bg-slate-50 p-2 rounded border border-slate-200">
                   {resetToken}
-                </div>
-                <div className="pt-1 text-right">
+                </code>
+                <div className="pt-1">
                   <Link
                     to={`/reset-password?token=${encodeURIComponent(resetToken)}`}
-                    className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-bold transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 focus-ring rounded"
                   >
-                    <span>Proceed to Set New Password</span>
+                    <span>Proceed to Reset Password</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -131,22 +130,22 @@ export const ForgotPassword: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
-            <label htmlFor="forgot-email" className="block text-xs font-medium text-slate-300 mb-1.5">
+            <label htmlFor="recovery-email" className="block text-xs font-semibold text-slate-700 mb-1.5">
               Registered Business Email
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                 <Mail className="w-4 h-4" />
               </span>
               <input
-                id="forgot-email"
+                id="recovery-email"
                 type="email"
                 autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="merchant@example.com"
-                className="w-full bg-[#0B0E14] border border-[#1F293D] rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/40 transition-all font-sans"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 transition-all font-sans"
               />
             </div>
           </div>
@@ -154,26 +153,26 @@ export const ForgotPassword: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 active:scale-[0.99] text-white font-sans text-xs font-semibold tracking-wide transition-all shadow-[0_0_18px_rgba(14,165,233,0.35)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-sans text-sm font-semibold tracking-wide transition-all shadow-sm hover:shadow focus-ring disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                <span>Issuing Instructions...</span>
+                <span>Processing Request...</span>
               </div>
             ) : (
               <>
-                <span>Send Reset Link</span>
+                <span>Send Reset Instructions</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-6 pt-5 border-t border-[#1F293D] text-center text-xs text-slate-400 font-sans">
-          <Link to="/signin" className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">
+        <div className="mt-6 pt-5 border-t border-slate-200 text-center text-xs text-slate-500 font-sans">
+          <Link to="/signin" className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-semibold transition-colors focus-ring rounded">
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Return to Sign In</span>
+            <span>Back to Sign In</span>
           </Link>
         </div>
       </motion.div>

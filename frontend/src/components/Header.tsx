@@ -1,6 +1,6 @@
 import React from 'react';
 import { DemoNoticeBadge } from './DemoNoticeBadge';
-import { RefreshCw, Play, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { RefreshCw, Play, LogIn, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../lib/auth-context';
 
@@ -29,57 +29,69 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#1F293D] mb-6">
+    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 mb-6">
       <div>
         <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-100">{title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-sans">{title}</h1>
           <DemoNoticeBadge compact />
         </div>
-        <p className="text-xs text-slate-400 mt-1">{subtitle}</p>
+        <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
       </div>
 
-      <div className="flex items-center flex-wrap gap-3">
+      <div className="flex items-center flex-wrap gap-2.5 sm:gap-3">
         {/* Merchant Session Status */}
         {isAuthenticated && user ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#121721] border border-cyan-500/30 text-xs font-mono">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
-            <span className="text-slate-200 font-bold truncate max-w-[120px]">{user.business_name || user.full_name}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm text-xs font-mono">
+            <span className="w-2 h-2 rounded-full bg-teal-500" aria-hidden="true" />
+            <span className="text-slate-900 font-bold truncate max-w-[140px]">{user.business_name || user.full_name}</span>
             <button
+              type="button"
               onClick={() => logout()}
-              className="text-slate-400 hover:text-rose-400 transition-colors ml-1 p-0.5"
+              className="text-slate-400 hover:text-rose-600 transition-colors ml-1 p-0.5 focus-ring rounded"
               title="Sign Out"
+              aria-label="Sign Out"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
         ) : (
           <Link
             to="/signin"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 text-xs font-mono font-medium border border-slate-700 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium border border-slate-300 shadow-sm transition-all focus-ring"
           >
-            <LogIn className="w-3.5 h-3.5 text-cyan-400" />
+            <LogIn className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
             <span>Merchant Sign In</span>
           </Link>
         )}
 
         {/* System Active Badge */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
+        <div 
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium"
+          role="status"
+          aria-label="System Protection Active"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
           <span>Protection Active</span>
         </div>
 
         {/* Timeframe selector pills */}
         {onTimeframeChange && (
-          <div className="flex items-center bg-[#121721] p-1 rounded-xl border border-[#1F293D]">
+          <div 
+            className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200"
+            role="group"
+            aria-label="Select timeframe"
+          >
             {timeframes.map((tf) => (
               <button
                 key={tf.id}
+                type="button"
                 onClick={() => onTimeframeChange(tf.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-mono font-medium transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all focus-ring ${
                   selectedTimeframe === tf.id
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-[0_0_10px_rgba(244,63,94,0.2)]'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-blue-700 shadow-sm font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
+                aria-pressed={selectedTimeframe === tf.id}
               >
                 {tf.label}
               </button>
@@ -90,21 +102,22 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Action: Test PayPal Sandbox */}
         <Link
           to="/sandbox"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-xs font-medium border border-cyan-500/30 transition-all shadow-[0_0_12px_rgba(14,165,233,0.2)]"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all focus-ring"
         >
-          <Play className="w-3.5 h-3.5 text-cyan-400 fill-current" />
+          <Play className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
           <span>Test Sandbox</span>
         </Link>
 
         {/* Action: Reset Demo Data */}
         {onResetDemo && (
           <button
+            type="button"
             onClick={onResetDemo}
             disabled={isResetting}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#121721] hover:bg-[#18202F] text-slate-300 text-xs font-medium border border-[#1F293D] transition-all disabled:opacity-50"
-            title="Re-seed synthetic transactions with deterministic risk scores (requires auth)"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium border border-slate-200 shadow-sm transition-all disabled:opacity-50 focus-ring"
+            title="Re-seed synthetic transactions with deterministic risk scores"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-rose-400' : 'text-slate-400'}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-blue-600' : 'text-slate-500'}`} aria-hidden="true" />
             <span>{isResetting ? 'Resetting...' : 'Reset Demo'}</span>
           </button>
         )}

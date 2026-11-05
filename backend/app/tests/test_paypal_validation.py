@@ -146,9 +146,16 @@ async def test_cross_merchant_order_capture_rejected():
     settings.PAYPAL_MOCK_SIMULATOR = True
     db = SessionLocal()
     try:
-        # Create merchant A and merchant B mock objects
-        merchant_a = User(id=101, email="merchant_a@example.com", role="merchant")
-        merchant_b = User(id=102, email="merchant_b@example.com", role="merchant")
+        # Ensure merchant A and merchant B exist in DB to satisfy foreign keys
+        merchant_a = db.query(User).filter(User.id == 101).first()
+        if not merchant_a:
+            merchant_a = User(id=101, email="merchant_a@example.com", hashed_password="hash", role="merchant", full_name="Merchant A")
+            db.add(merchant_a)
+        merchant_b = db.query(User).filter(User.id == 102).first()
+        if not merchant_b:
+            merchant_b = User(id=102, email="merchant_b@example.com", hashed_password="hash", role="merchant", full_name="Merchant B")
+            db.add(merchant_b)
+        db.commit()
 
         req = PayPalOrderCreateRequest(
             amount=75.0,

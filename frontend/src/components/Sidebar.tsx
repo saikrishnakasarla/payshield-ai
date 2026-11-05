@@ -29,20 +29,24 @@ export const Sidebar: React.FC = () => {
     : 'PS';
 
   return (
-    <aside className="hidden lg:flex w-20 bg-[#0B0E14] border-r border-[#1F293D] flex-col items-center py-6 justify-between flex-shrink-0 z-30 select-none">
+    <aside 
+      className="hidden lg:flex w-20 bg-[#0F172A] border-r border-slate-800 flex-col items-center py-6 justify-between flex-shrink-0 z-30 select-none shadow-sm"
+      aria-label="Desktop primary navigation"
+    >
       {/* Top Logo */}
       <div className="flex flex-col items-center gap-6">
         <NavLink
           to="/"
-          className="relative p-3 rounded-2xl bg-gradient-to-br from-rose-500/20 to-orange-500/20 border border-rose-500/30 text-rose-400 hover:scale-105 transition-all shadow-[0_0_20px_rgba(244,63,94,0.3)] group"
-          title="PayShield AI — Financial Protection Assistant"
+          className="relative p-3 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm group focus-ring"
+          title="PayShield AI — Financial Protection Platform"
+          aria-label="PayShield AI Home"
         >
-          <ShieldAlert className="w-6 h-6 group-hover:rotate-6 transition-transform" />
+          <ShieldAlert className="w-6 h-6 group-hover:scale-105 transition-transform" />
           <span className="sr-only">PayShield AI</span>
         </NavLink>
 
         {/* Navigation Items */}
-        <nav className="flex flex-col items-center gap-3">
+        <nav className="flex flex-col items-center gap-2.5" aria-label="Main Navigation">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -50,19 +54,20 @@ export const Sidebar: React.FC = () => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `relative p-3 rounded-xl transition-all duration-200 group flex items-center justify-center ${
+                  `relative p-3 rounded-xl transition-all duration-200 group flex items-center justify-center focus-ring ${
                     isActive
-                      ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.25)]'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-[#18202F]'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
                   }`
                 }
                 title={item.label}
+                aria-label={item.label}
               >
                 {({ isActive }) => (
                   <>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-5 h-5" aria-hidden="true" />
                     {isActive && (
-                      <span className="absolute -left-3 w-1 h-5 bg-rose-500 rounded-r-full shadow-[0_0_8px_#f43f5e]" />
+                      <span className="absolute -left-3 w-1.5 h-6 bg-blue-400 rounded-r-full" aria-hidden="true" />
                     )}
                   </>
                 )}
@@ -76,30 +81,33 @@ export const Sidebar: React.FC = () => {
       <div className="flex flex-col items-center gap-4">
         <NavLink
           to="/settings"
-          className="p-2.5 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-[#18202F] transition-all"
+          className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all focus-ring"
           title="Settings & System Status"
+          aria-label="System Settings"
         >
-          <SettingsIcon className="w-5 h-5" />
+          <SettingsIcon className="w-5 h-5" aria-hidden="true" />
         </NavLink>
 
         {isAuthenticated && user ? (
           <NavLink
             to="/settings"
-            className="relative group cursor-pointer"
+            className="relative group cursor-pointer focus-ring rounded-full"
             title={`${user.full_name} (${user.email})`}
+            aria-label={`Profile: ${user.full_name}`}
           >
-            <div className="w-10 h-10 rounded-full border-2 border-cyan-500/40 bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-md">
+            <div className="w-10 h-10 rounded-full border-2 border-teal-400/40 bg-gradient-to-tr from-teal-600 to-blue-700 flex items-center justify-center text-xs font-bold text-white shadow-sm">
               {userInitials}
             </div>
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0B0E14]" />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0F172A]" aria-hidden="true" />
           </NavLink>
         ) : (
           <NavLink
             to="/signin"
-            className="w-10 h-10 rounded-full border border-slate-700 bg-[#121721] hover:bg-[#1F293D] text-slate-300 hover:text-cyan-400 flex items-center justify-center transition-all"
+            className="w-10 h-10 rounded-full border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-all focus-ring"
             title="Sign In to Merchant Account"
+            aria-label="Sign In"
           >
-            <LogIn className="w-4 h-4" />
+            <LogIn className="w-4 h-4" aria-hidden="true" />
           </NavLink>
         )}
       </div>

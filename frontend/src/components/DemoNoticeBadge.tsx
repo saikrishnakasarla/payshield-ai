@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 interface DemoNoticeProps {
   compact?: boolean;
@@ -8,30 +8,36 @@ interface DemoNoticeProps {
 export const DemoNoticeBadge: React.FC<DemoNoticeProps> = ({ compact = false }) => {
   if (compact) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-medium">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-        DEMO DATA
+      <span 
+        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-mono font-semibold"
+        role="note"
+        aria-label="Demonstration environment with synthetic data"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden="true" />
+        DEMO ENVIRONMENT
       </span>
     );
   }
 
   return (
-    <div className="bg-[#121721] border border-amber-500/20 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs text-slate-300 shadow-sm">
+    <div 
+      className="bg-amber-50/80 border border-amber-200 rounded-2xl px-4 py-3 flex items-center justify-between text-xs text-amber-950 shadow-sm"
+      role="note"
+    >
       <div className="flex items-center gap-2.5">
-        <div className="p-1 rounded-md bg-amber-500/10 text-amber-400 flex-shrink-0">
-          <Info className="w-4 h-4" />
+        <div className="p-1.5 rounded-lg bg-amber-100 text-amber-800 flex-shrink-0">
+          <Info className="w-4 h-4" aria-hidden="true" />
         </div>
         <div>
-          <span className="font-semibold text-amber-300 mr-1.5">Demonstration Environment Notice:</span>
-          <span>
-            PayShield AI uses synthetic seeded transactions and PayPal Sandbox for demo payments. Risk alerts are
-            explainable recommendations, not proof of fraud. All actions are review-only.
+          <span className="font-bold text-amber-900 mr-1.5">Demonstration Environment Notice:</span>
+          <span className="text-amber-800">
+            PayShield AI operates using deterministic synthetic transactions and verified PayPal Sandbox telemetry. Risk scores represent rule-based evidence recommendations.
           </span>
         </div>
       </div>
       <div className="flex-shrink-0 ml-4 hidden md:block">
-        <span className="px-2.5 py-1 rounded bg-slate-800 text-slate-400 font-mono text-[11px] border border-slate-700">
-          SECURE SANDBOX
+        <span className="px-2.5 py-1 rounded-lg bg-white text-amber-800 font-mono text-[11px] font-semibold border border-amber-200 shadow-sm">
+          PAYPAL SANDBOX ACTIVE
         </span>
       </div>
     </div>

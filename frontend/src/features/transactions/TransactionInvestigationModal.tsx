@@ -2,23 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { 
   X, 
   ShieldCheck, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
   FileText, 
-  User, 
-  MapPin, 
-  CreditCard, 
-  Layers, 
-  ExternalLink,
-  MessageSquare,
-  Sparkles,
-  Cpu,
-  Activity,
-  Fingerprint,
-  Lock,
-  ShieldAlert,
-  ArrowRight
+  Lock, 
+  Cpu, 
+  MessageSquare
 } from 'lucide-react';
 import { Transaction, RiskAnalysis } from '../../lib/types';
 import { RiskScoreGauge } from '../risk/RiskScoreGauge';
@@ -66,6 +53,17 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
       loadData(transactionId);
     }
   }, [transactionId]);
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   if (!transactionId) return null;
 
@@ -123,45 +121,51 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-[#0B0E14] border border-[#1F293D] rounded-3xl w-full max-w-6xl max-h-[94vh] flex flex-col overflow-hidden shadow-2xl relative">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/60 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="investigation-modal-title"
+    >
+      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-6xl max-h-[94vh] flex flex-col overflow-hidden shadow-2xl relative text-slate-900">
         {/* Top Modal Header */}
-        <div className="bg-[#121721] px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#1F293D] flex items-center justify-between gap-3">
+        <div className="bg-slate-50 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex-shrink-0">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex-shrink-0">
+              <ShieldCheck className="w-5 h-5" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm sm:text-base font-bold text-slate-100 font-mono break-all leading-tight">
+                <h2 id="investigation-modal-title" className="text-sm sm:text-base font-bold text-slate-900 font-mono break-all leading-tight">
                   {data?.transaction.reference_id || 'Transaction Investigation'}
                 </h2>
-                <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[10px] font-mono flex-shrink-0">
+                <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 text-[10px] font-mono font-bold flex-shrink-0">
                   {data?.transaction.source === 'PAYPAL_SANDBOX' ? 'SANDBOX VERIFIED' : 'DEMO BENCHMARK'}
                 </span>
-                <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30 text-[10px] font-mono flex-shrink-0">
+                <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200 text-[10px] font-mono font-bold flex-shrink-0">
                   SHA-256 CHAINED
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-400 truncate">
-                Multi-signal telemetry, Random Forest probability & cryptographically signed merchant audit trail
+              <p className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5 font-sans">
+                Multi-signal telemetry, ML inference & cryptographically chained merchant audit trail
               </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-[#18202F] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
-            aria-label="Close dossier"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0 focus-ring"
+            aria-label="Close investigation dossier"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
         {/* Modal Body */}
         {isLoading || !data ? (
-          <div className="p-16 text-center text-slate-400 font-mono text-xs">
-            <div className="inline-block w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mb-3" />
+          <div className="p-16 text-center text-slate-500 font-mono text-xs" role="status">
+            <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-3" aria-hidden="true" />
             <p>Loading multi-signal investigation dossier...</p>
           </div>
         ) : (
@@ -171,88 +175,88 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
               
               {/* Left Column: Transaction Metadata & Multi-Signal Telemetry (4 cols) */}
               <div className="lg:col-span-4 space-y-4">
-                <div className="bg-[#121721] border border-[#1F293D] rounded-2xl p-5 space-y-4">
-                  <h3 className="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-cyan-400" />
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4 shadow-2xs">
+                  <h3 className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2 font-sans">
+                    <FileText className="w-4 h-4 text-blue-600" aria-hidden="true" />
                     Transaction & Identity Signals
                   </h3>
 
                   <div className="space-y-3 text-xs">
                     <div>
                       <span className="text-slate-500 block font-mono text-[11px]">Amount Charged</span>
-                      <span className="text-2xl font-bold font-mono text-slate-100">
+                      <span className="text-2xl font-bold font-mono text-slate-900">
                         ${data.transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
-                        <span className="text-xs font-normal text-slate-400">{data.transaction.currency}</span>
+                        <span className="text-xs font-normal text-slate-500">{data.transaction.currency}</span>
                       </span>
                     </div>
 
-                    <div className="pt-2 border-t border-[#1F293D]">
+                    <div className="pt-2 border-t border-slate-200">
                       <span className="text-slate-500 block font-mono text-[11px]">Customer Profile</span>
-                      <span className="font-semibold text-slate-200">{data.transaction.customer_name}</span>
-                      <span className="text-slate-400 block font-mono text-[11px] truncate">
+                      <span className="font-semibold text-slate-900">{data.transaction.customer_name}</span>
+                      <span className="text-slate-500 block font-mono text-[11px] truncate">
                         {data.transaction.customer_email}
                       </span>
                     </div>
 
                     {/* Anti-Evasion Multi-Signals: Account Age & Failed Attempts */}
-                    <div className="pt-2 border-t border-[#1F293D] grid grid-cols-2 gap-2 font-mono">
-                      <div className="bg-[#0B0E14] p-2 rounded-xl border border-[#1F293D]">
-                        <span className="text-slate-500 block text-[10px] uppercase">Account Age</span>
-                        <span className="font-bold text-slate-200 text-xs">
+                    <div className="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 font-mono">
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                        <span className="text-slate-500 block text-[10px] uppercase font-sans">Account Age</span>
+                        <span className="font-bold text-slate-900 text-xs">
                           {data.transaction.account_age_days ?? 90} days
                         </span>
-                        <span className="text-[9px] text-slate-500 block">
+                        <span className="text-[10px] text-slate-500 block font-sans">
                           {(data.transaction.account_age_days ?? 90) < 7 ? '⚠️ New Account' : 'Mature Profile'}
                         </span>
                       </div>
-                      <div className="bg-[#0B0E14] p-2 rounded-xl border border-[#1F293D]">
-                        <span className="text-slate-500 block text-[10px] uppercase">Failed (24h)</span>
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                        <span className="text-slate-500 block text-[10px] uppercase font-sans">Failed (24h)</span>
                         <span className={`font-bold text-xs ${
-                          (data.transaction.failed_attempts_24h ?? 0) >= 3 ? 'text-rose-400' : 'text-slate-200'
+                          (data.transaction.failed_attempts_24h ?? 0) >= 3 ? 'text-rose-600' : 'text-slate-900'
                         }`}>
                           {data.transaction.failed_attempts_24h ?? 0} attempts
                         </span>
-                        <span className="text-[9px] text-slate-500 block">
+                        <span className="text-[10px] text-slate-500 block font-sans">
                           {(data.transaction.failed_attempts_24h ?? 0) >= 3 ? '⚠️ Velocity Spike' : 'Normal'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-[#1F293D]">
+                    <div className="pt-2 border-t border-slate-200">
                       <span className="text-slate-500 block font-mono text-[11px]">Customer Baseline</span>
-                      <div className="flex items-center justify-between font-mono text-[11px] text-slate-300">
+                      <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
                         <span>Avg Purchase:</span>
-                        <span className="font-bold">${data.transaction.customer_baseline_amount}</span>
+                        <span className="font-bold text-slate-900">${data.transaction.customer_baseline_amount}</span>
                       </div>
-                      <div className="flex items-center justify-between font-mono text-[11px] text-slate-300">
+                      <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
                         <span>Prior Orders:</span>
-                        <span className="font-bold">{data.transaction.customer_baseline_orders}</span>
+                        <span className="font-bold text-slate-900">{data.transaction.customer_baseline_orders}</span>
                       </div>
-                      <div className="mt-1 text-[10px] text-amber-400 font-mono">
+                      <div className="mt-1 text-[11px] text-amber-800 font-mono font-medium">
                         Current is {(data.transaction.amount / (data.transaction.customer_baseline_amount || 1)).toFixed(1)}x baseline
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-[#1F293D]">
+                    <div className="pt-2 border-t border-slate-200">
                       <span className="text-slate-500 block font-mono text-[11px]">Connection & Geolocation</span>
-                      <div className="flex items-center justify-between font-mono text-[11px] text-slate-300">
+                      <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
                         <span>IP Country:</span>
-                        <span className="font-bold text-slate-200">{data.transaction.ip_country} ({data.transaction.ip_address})</span>
+                        <span className="font-bold text-slate-900">{data.transaction.ip_country} ({data.transaction.ip_address})</span>
                       </div>
-                      <div className="flex items-center justify-between font-mono text-[11px] text-slate-300">
+                      <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
                         <span>Billing Country:</span>
-                        <span className="font-bold text-slate-200">{data.transaction.billing_country}</span>
+                        <span className="font-bold text-slate-900">{data.transaction.billing_country}</span>
                       </div>
                     </div>
 
                     {data.transaction.items && data.transaction.items.length > 0 && (
-                      <div className="pt-2 border-t border-[#1F293D]">
+                      <div className="pt-2 border-t border-slate-200">
                         <span className="text-slate-500 block font-mono text-[11px] mb-1">Purchased Line Items</span>
                         <div className="space-y-1">
                           {data.transaction.items.map((it, idx) => (
-                            <div key={idx} className="flex justify-between text-[11px] font-mono text-slate-300 bg-[#0B0E14] p-1.5 rounded">
-                              <span className="truncate mr-2">{it.quantity}x {it.name}</span>
-                              <span className="font-bold">${(it.price * it.quantity).toFixed(2)}</span>
+                            <div key={idx} className="flex justify-between text-[11px] font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
+                              <span className="truncate mr-2 font-medium">{it.quantity}x {it.name}</span>
+                              <span className="font-bold text-slate-900">${(it.price * it.quantity).toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
@@ -262,28 +266,28 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
                 </div>
 
                 {/* Cryptographically Chained Audit & Review History Card */}
-                <div className="bg-[#121721] border border-[#1F293D] rounded-2xl p-4 text-xs space-y-2.5">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2.5 shadow-2xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 font-mono uppercase text-[11px] block font-bold flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                    <span className="text-slate-700 font-mono uppercase text-[11px] font-bold flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
                       Tamper-Resistant Audit Trail
                     </span>
-                    <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                    <span className="text-[10px] font-mono text-emerald-800 font-bold px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200">
                       SHA-256 CHAINED
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between font-mono">
-                    <span className="text-slate-300">Current Status:</span>
-                    <span className="font-bold text-cyan-400">{data.transaction.review_status}</span>
+                    <span className="text-slate-600">Current Status:</span>
+                    <span className="font-bold text-blue-700">{data.transaction.review_status}</span>
                   </div>
                   {data.transaction.reviewed_at && (
-                    <div className="text-[11px] text-slate-400 font-mono">
+                    <div className="text-[11px] text-slate-500 font-mono">
                       Reviewed on: {new Date(data.transaction.reviewed_at).toLocaleString()} by {data.transaction.reviewer}
                     </div>
                   )}
                   {data.transaction.review_notes && (
-                    <div className="bg-[#0B0E14] p-2 rounded border border-[#1F293D] text-slate-300 text-xs italic font-mono">
+                    <div className="bg-white p-2.5 rounded-lg border border-slate-200 text-slate-800 text-xs italic font-mono">
                       "{data.transaction.review_notes}"
                     </div>
                   )}
@@ -296,7 +300,7 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
               {/* Center Column: Risk Gauge, Random Forest ML, & Rules (4 cols) */}
               <div className="lg:col-span-4 space-y-4">
                 {/* Risk Gauge */}
-                <div className="bg-[#121721] border border-[#1F293D] rounded-2xl p-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-2xs">
                   <RiskScoreGauge
                     score={data.latest_analysis.deterministic_score}
                     level={data.latest_analysis.risk_level}
@@ -304,15 +308,15 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
                 </div>
 
                 {/* Random Forest Classifier Card */}
-                <div className="bg-[#121721] border border-cyan-500/30 rounded-2xl p-4 space-y-3 shadow-md">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#1F293D]">
+                <div className="bg-slate-50 border border-blue-200 rounded-2xl p-4 space-y-3 shadow-2xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                     <div className="flex items-center gap-2">
-                      <Cpu className="w-4 h-4 text-cyan-400" />
-                      <h4 className="text-xs font-bold text-slate-100 font-mono uppercase tracking-wider">
+                      <Cpu className="w-4 h-4 text-blue-600" aria-hidden="true" />
+                      <h4 className="text-xs font-bold text-slate-900 font-mono uppercase tracking-wider">
                         Random Forest Classifier (100 Trees)
                       </h4>
                     </div>
-                    <span className="text-[10px] font-mono text-cyan-300 px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
+                    <span className="text-[10px] font-mono font-bold text-blue-700 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
                       Trained ML
                     </span>
                   </div>
@@ -320,17 +324,17 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
                   {/* Probability Bar */}
                   <div className="space-y-1.5 font-mono">
                     <div className="flex justify-between text-xs">
-                      <span className="text-slate-400">P(Fraud) Probability:</span>
+                      <span className="text-slate-600 font-medium">P(Fraud) Probability:</span>
                       <span className={`font-bold ${
-                        mlProb > 0.65 ? 'text-rose-400' : mlProb > 0.35 ? 'text-amber-400' : 'text-emerald-400'
+                        mlProb > 0.65 ? 'text-rose-600' : mlProb > 0.35 ? 'text-amber-600' : 'text-emerald-600'
                       }`}>
                         {(mlProb * 100).toFixed(1)}%
                       </span>
                     </div>
-                    <div className="h-2 w-full bg-[#0B0E14] rounded-full overflow-hidden border border-[#1F293D]">
+                    <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden border border-slate-300">
                       <div
                         className={`h-full transition-all duration-700 ${
-                          mlProb > 0.65 ? 'bg-rose-500' : mlProb > 0.35 ? 'bg-amber-500' : 'bg-emerald-500'
+                          mlProb > 0.65 ? 'bg-rose-600' : mlProb > 0.35 ? 'bg-amber-600' : 'bg-emerald-600'
                         }`}
                         style={{ width: `${Math.min(100, Math.max(2, mlProb * 100))}%` }}
                       />
@@ -338,29 +342,29 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
                   </div>
 
                   {/* Hybrid Score & Formula */}
-                  <div className="bg-[#0B0E14] p-2.5 rounded-xl border border-[#1F293D] space-y-1 font-mono text-xs">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1 font-mono text-xs shadow-2xs">
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-400">PayShield Hybrid Score:</span>
-                      <span className="font-bold text-cyan-400 text-sm">
+                      <span className="text-slate-600">PayShield Hybrid Score:</span>
+                      <span className="font-bold text-blue-700 text-sm">
                         {hybridScore.toFixed(1)} / 100
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-500">
+                    <div className="text-[10px] text-slate-500 font-sans">
                       Ensemble: 60% ML Probability + 40% Deterministic Rule Points
                     </div>
                   </div>
 
                   {/* Feature Attributions / SHAP Values */}
                   {featureAttributions.length > 0 && (
-                    <div className="pt-2 border-t border-[#1F293D] space-y-1.5 font-mono text-xs">
-                      <span className="text-[10px] uppercase text-slate-400 block font-bold">
+                    <div className="pt-2 border-t border-slate-200 space-y-1.5 font-mono text-xs">
+                      <span className="text-[10px] uppercase text-slate-600 block font-bold font-sans">
                         Top Model Feature Attributions:
                       </span>
                       <div className="space-y-1">
                         {featureAttributions.slice(0, 4).map((attr, idx) => (
-                          <div key={idx} className="flex justify-between items-center text-[11px] bg-[#0B0E14] p-1.5 rounded">
-                            <span className="text-slate-300 truncate mr-2">{attr.feature}</span>
-                            <span className={`font-bold ${attr.impact >= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                          <div key={idx} className="flex justify-between items-center text-[11px] bg-white p-1.5 rounded-lg border border-slate-200">
+                            <span className="text-slate-700 truncate mr-2 font-medium">{attr.feature}</span>
+                            <span className={`font-bold ${attr.impact >= 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                               {attr.impact >= 0 ? `+${(attr.impact * 100).toFixed(0)}%` : `${(attr.impact * 100).toFixed(0)}%`}
                             </span>
                           </div>
@@ -371,7 +375,7 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
                 </div>
 
                 {/* Triggered Rules List */}
-                <div className="bg-[#121721] border border-[#1F293D] rounded-2xl p-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-2xs">
                   <TriggeredRulesList rules={data.latest_analysis.triggered_rules} />
                 </div>
               </div>
@@ -389,16 +393,17 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
 
             {/* Note Input Toggle */}
             {showNoteInput && (
-              <div className="bg-[#121721] border border-[#1F293D] rounded-2xl p-4 space-y-2">
-                <label className="text-xs font-mono text-slate-300 flex items-center gap-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                <label htmlFor="audit-trail-note-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 font-sans">
+                  <MessageSquare className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
                   Merchant Audit Trail Note:
                 </label>
                 <textarea
+                  id="audit-trail-note-input"
                   value={reviewNote}
                   onChange={(e) => setReviewNote(e.target.value)}
                   placeholder="Record customer contact notes, shipping address verification, or human reasoning..."
-                  className="w-full bg-[#0B0E14] border border-[#1F293D] rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 font-mono h-20"
+                  className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 placeholder-slate-400 focus-ring font-mono h-20 shadow-2xs"
                 />
               </div>
             )}
@@ -407,21 +412,21 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
 
         {/* Action Error Alert */}
         {actionError && (
-          <div className="bg-rose-500/15 border-t border-[#1F293D] px-6 py-2.5 text-xs text-rose-300 font-mono flex items-center justify-between">
+          <div className="bg-rose-50 border-t border-rose-200 px-6 py-2.5 text-xs text-rose-800 font-mono flex items-center justify-between" role="alert">
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-400" />
+              <span className="w-2 h-2 rounded-full bg-rose-600" aria-hidden="true" />
               {actionError}
             </span>
-            <button onClick={() => setActionError(null)} className="text-rose-400 hover:text-rose-200 underline text-[11px]">
+            <button type="button" onClick={() => setActionError(null)} className="text-rose-700 hover:text-rose-900 underline text-[11px] font-semibold focus-ring rounded">
               Dismiss
             </button>
           </div>
         )}
 
         {/* Modal Bottom Actions Footer */}
-        <div className="bg-[#121721] px-4 sm:px-6 py-3.5 sm:py-4 border-t border-[#1F293D] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0" />
+        <div className="bg-slate-50 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-slate-600">
+            <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse flex-shrink-0" aria-hidden="true" />
             <span className="text-[11px] sm:text-xs font-mono">
               Cryptographic Audit: Decision states are signed and chained upon review.
             </span>
@@ -429,24 +434,27 @@ export const TransactionInvestigationModal: React.FC<TransactionInvestigationMod
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
             <button
+              type="button"
               onClick={() => setShowNoteInput(!showNoteInput)}
-              className="px-3.5 py-2.5 rounded-xl bg-[#18202F] text-slate-300 hover:text-white border border-[#2D3A54] text-xs font-medium transition-all min-h-[44px] flex items-center justify-center font-mono"
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold transition-all min-h-[44px] flex items-center justify-center shadow-sm focus-ring"
             >
               {showNoteInput ? 'Hide Note' : 'Add Note'}
             </button>
 
             <button
+              type="button"
               onClick={() => handleReviewAction('REVIEWED_SAFE')}
               disabled={isSubmittingReview}
-              className="px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition-all shadow-[0_0_12px_rgba(16,185,129,0.2)] min-h-[44px] flex items-center justify-center font-mono"
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all shadow-sm min-h-[44px] flex items-center justify-center disabled:opacity-50 focus-ring"
             >
               Mark Reviewed Safe
             </button>
 
             <button
+              type="button"
               onClick={() => handleReviewAction('ESCALATED_HUMAN_REVIEW')}
               disabled={isSubmittingReview}
-              className="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-semibold transition-all shadow-[0_0_15px_rgba(244,63,94,0.3)] min-h-[44px] flex items-center justify-center font-mono"
+              className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-all shadow-sm min-h-[44px] flex items-center justify-center disabled:opacity-50 focus-ring"
             >
               Escalate to Human Review
             </button>

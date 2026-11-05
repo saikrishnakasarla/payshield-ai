@@ -21,8 +21,8 @@ const ResetPassword = lazy(() => import('./pages/auth/ResetPassword').then(m => 
 const PageLoadingFallback: React.FC = () => (
   <div className="flex items-center justify-center min-h-[50vh]">
     <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin" />
-      <span className="text-xs font-mono text-slate-400 tracking-wider">Loading PayShield Module...</span>
+      <div className="w-8 h-8 rounded-full border-2 border-blue-600/20 border-t-blue-600 animate-spin" />
+      <span className="text-xs font-mono text-slate-500 tracking-wider">Loading PayShield Module...</span>
     </div>
   </div>
 );
@@ -47,7 +47,7 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
-        <div className="flex flex-col lg:flex-row h-screen w-screen overflow-hidden bg-[#0B0E14] text-slate-100">
+        <div className="flex flex-col lg:flex-row h-screen w-screen overflow-hidden bg-slate-50 text-slate-900">
           {/* Mobile Top Header (Shown only on < lg viewports) */}
           <MobileHeaderBar onOpenNav={() => setIsMobileNavOpen(true)} />
 

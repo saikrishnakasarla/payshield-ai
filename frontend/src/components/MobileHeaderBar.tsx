@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Menu, ShieldAlert, LogIn, User as UserIcon } from 'lucide-react';
+import { Menu, ShieldAlert, LogIn } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 
 interface MobileHeaderBarProps {
@@ -15,29 +15,29 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({ onOpenNav }) =
     : 'PS';
 
   return (
-    <header className="lg:hidden sticky top-0 z-40 bg-[#0B0E14]/95 backdrop-blur-md border-b border-[#1F293D] px-4 py-2.5 flex items-center justify-between shadow-md">
+    <header className="lg:hidden sticky top-0 z-40 bg-[#0F172A] border-b border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-sm">
       {/* Left: Hamburger Button + Logo */}
       <div className="flex items-center gap-2.5">
         <button
           type="button"
           onClick={onOpenNav}
-          className="p-2 -ml-1 rounded-xl text-slate-300 hover:text-white hover:bg-[#18202F] active:bg-[#18202F] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="p-2 -ml-1 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-ring"
           aria-label="Open navigation menu"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5" aria-hidden="true" />
         </button>
 
-        <NavLink to="/" className="flex items-center gap-2" title="PayShield AI Home">
-          <div className="p-1.5 rounded-xl bg-gradient-to-br from-rose-500/20 to-orange-500/20 border border-rose-500/30 text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.3)]">
-            <ShieldAlert className="w-4 h-4" />
+        <NavLink to="/" className="flex items-center gap-2.5 focus-ring rounded-lg" title="PayShield AI Home">
+          <div className="p-1.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400">
+            <ShieldAlert className="w-4 h-4" aria-hidden="true" />
           </div>
           <div>
-            <span className="text-sm font-bold tracking-tight text-slate-100 font-sans block leading-none">
+            <span className="text-sm font-bold tracking-tight text-white font-sans block leading-none">
               PayShield AI
             </span>
-            <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Active
+            <span className="text-[10px] font-mono text-teal-400 flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" aria-hidden="true" />
+              Active Protection
             </span>
           </div>
         </NavLink>
@@ -48,19 +48,20 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({ onOpenNav }) =
         {isAuthenticated && user ? (
           <NavLink
             to="/settings"
-            className="flex items-center gap-1.5 p-1 rounded-full text-slate-300 hover:text-white transition-all min-h-[44px] min-w-[44px] justify-center"
+            className="flex items-center gap-1.5 p-1 rounded-full text-slate-300 hover:text-white transition-all min-h-[44px] min-w-[44px] justify-center focus-ring"
             title={`${user.full_name} (${user.email})`}
+            aria-label={`Profile: ${user.full_name}`}
           >
-            <div className="w-8 h-8 rounded-full border border-cyan-500/40 bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center text-[11px] font-bold text-white shadow-sm">
+            <div className="w-8 h-8 rounded-full border border-teal-500/40 bg-gradient-to-tr from-teal-600 to-blue-600 flex items-center justify-center text-[11px] font-bold text-white shadow-sm">
               {userInitials}
             </div>
           </NavLink>
         ) : (
           <NavLink
             to="/signin"
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-xs font-mono font-medium transition-all min-h-[38px]"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all min-h-[38px] shadow-sm focus-ring"
           >
-            <LogIn className="w-3.5 h-3.5 text-cyan-400" />
+            <LogIn className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Sign In</span>
           </NavLink>
         )}
