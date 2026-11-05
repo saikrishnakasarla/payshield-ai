@@ -1,0 +1,102 @@
+flowchart TB
+    %% ==========================================
+    %% PayShield AI — End-to-End System Architecture
+    %% ==========================================
+
+    Merchant["Merchant / Risk Analyst"]
+
+    subgraph ClientLayer ["Frontend Client Layer (React 18 + TypeScript + Vite)"]
+        Dashboard["Merchant Overview Dashboard"]
+        Monitor["Transaction Monitor & Filter"]
+        InvestigationModal["Investigation Dossier Modal"]
+        CheckoutView["PayPal Sandbox & Multi-Gateway UI"]
+        AuditView["Cryptographic Audit & Reports UI"]
+    end
+
+    subgraph APILayer ["Backend API & Gateway Layer (FastAPI / ASGI)"]
+        AuthMiddleware["Authentication & Rate Limiter (JWT, Tenant Isolation)"]
+        Router["FastAPI Application Router (/api/*)"]
+        WebhookHandler["PayPal Webhook Ingestion (/api/paypal/webhook)"]
+        SigVerifier["Transmission Signature & Replay Verifier"]
+        ReconciliationWorker["Asynchronous Reconciliation & Health Check"]
+    end
+
+    subgraph PaymentGateways ["Payment Execution Layer"]
+        subgraph RealPayPal ["Official PayPal Developer Sandbox"]
+            PP_OrdersAPI["PayPal Orders v2 API\n(api-m.sandbox.paypal.com)"]
+            PP_BuyerModal["PayPal SDK Smart Buttons\n(Buyer Approval Modal)"]
+            PP_CaptureAPI["PayPal Server Capture API\n(Independent Capture)"]
+        end
+
+        subgraph MockSimulatorPath ["Offline Gateway Simulator (Clearly Identified Fallback)"]
+            SimEngine["Deterministic Payment Simulator\n(Watermarked: is_synthetic=true)"]
+            SimReceipt["Synthetic Capture Receipt\n(CAP-SANDBOX-VERIFIED)"]
+        end
+    end
+
+    subgraph IntelligenceCore ["PayShield Risk Intelligence Core"]
+        RiskEngine["Deterministic Rule Engine\n(6 Rules: Velocity, Spike, Geo, Structuring)"]
+        MLClassifier["Random Forest ML Classifier\n(P(Fraud) Prediction)"]
+        EnsembleBlender["Hybrid Ensemble Blender\n(0.5 * Rules + 0.5 * ML)"]
+        
+        subgraph ExplainabilityModule ["AI Explainability Engine"]
+            GeminiLLM["Google Gemini 1.5 Flash\n(Grounded Evidence Synthesis)"]
+            DeterministicFallback["Deterministic Forensic Fallback\n(Zero-Hallucination Safe Mode)"]
+        end
+    end
+
+    subgraph StorageLayer ["Persistence & Governance Layer (SQLAlchemy 2.0 / Alembic)"]
+        DB[(Relational Database\nPostgreSQL Prod / SQLite Dev)]
+        AuditLogger["Cryptographic Audit Trail Engine\n(RFC 6962 SHA-256 + HMAC-SHA256)"]
+    end
+
+    %% Flow interactions
+    Merchant -->|Interacts via Browser| ClientLayer
+    ClientLayer -->|HTTPS + Bearer JWT| AuthMiddleware
+    AuthMiddleware --> Router
+
+    %% Payment Checkout Path
+    CheckoutView -->|1. Create Order Request| Router
+    Router -->|If Credentials Present| PP_OrdersAPI
+    Router -.->|If Missing/Mock Keys| SimEngine
+
+    %% Real PayPal Path
+    PP_OrdersAPI -->|2. Order Token| PP_BuyerModal
+    PP_BuyerModal -->|3. Buyer Approves| CheckoutView
+    CheckoutView -->|4. Capture Order Request| Router
+    Router -->|5. Independent Capture| PP_CaptureAPI
+    PP_CaptureAPI -->|6. Verified COMPLETED| Router
+
+    %% Simulator Path
+    SimEngine -->|Synthetic Approval| SimReceipt
+    SimReceipt -->|Synthetic Capture| Router
+
+    %% Webhook Path
+    PP_CaptureAPI -.->|Async Webhook Event| WebhookHandler
+    WebhookHandler --> SigVerifier
+    SigVerifier -->|Idempotent Event Check| Router
+
+    %% Risk Engine Screening
+    Router -->|Captured Order Payload| RiskEngine
+    RiskEngine -->|Extracted Vectors| MLClassifier
+    RiskEngine & MLClassifier --> EnsembleBlender
+    EnsembleBlender --> ExplainabilityModule
+    ExplainabilityModule --> GeminiLLM
+    GeminiLLM -.->|Offline / No API Key| DeterministicFallback
+
+    %% Persistence & Audit Flow
+    Router --> DB
+    EnsembleBlender --> DB
+    ExplainabilityModule --> DB
+    SigVerifier --> ReconciliationWorker
+    ReconciliationWorker --> DB
+
+    Router --> AuditLogger
+    AuditLogger -->|Chained Hash Pointer| DB
+
+    %% Feedback loop to Dashboard
+    DB -->|Aggregated Telemetry & Dossier| Router
+    Router --> Dashboard
+    Router --> Monitor
+    Router --> InvestigationModal
+    Router --> AuditView
