@@ -58,12 +58,14 @@ class PayPalService:
         data = {"grant_type": "client_credentials"}
 
         try:
-            async with httpx.AsyncClient(timeout=3.0) as client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
                 res = await client.post(f"{self.base_url}/v1/oauth2/token", headers=headers, data=data)
                 if res.status_code == 200:
                     return res.json().get("access_token")
                 else:
                     logger.error(f"PayPal OAuth failed with status {res.status_code}: {res.text}")
+        except httpx.TimeoutException as e:
+            logger.error(f"PayPal OAuth request timed out: {e}")
         except Exception as e:
             logger.error(f"Error fetching PayPal access token: {e}")
         return None
@@ -104,7 +106,7 @@ class PayPalService:
             }
 
             try:
-                async with httpx.AsyncClient(timeout=10.0) as client:
+                async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
                     res = await client.post(f"{self.base_url}/v2/checkout/orders", headers=headers, json=payload)
                     if res.status_code in (200, 201):
                         order_data = res.json()
@@ -119,6 +121,9 @@ class PayPalService:
                     else:
                         logger.error(f"PayPal create order failed: {res.text}")
                         raise RuntimeError(f"PayPal API responded with status {res.status_code}: {res.text}")
+            except httpx.TimeoutException as e:
+                logger.error(f"PayPal create order timed out: {e}")
+                raise RuntimeError(f"PayPal Sandbox API timed out while creating order: {e}")
             except httpx.RequestError as e:
                 logger.error(f"PayPal create order network exception: {e}")
                 raise RuntimeError(f"Failed to communicate with PayPal Sandbox API: {e}")
@@ -167,7 +172,7 @@ class PayPalService:
             }
 
             try:
-                async with httpx.AsyncClient(timeout=10.0) as client:
+                async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
                     res = await client.post(f"{self.base_url}/v2/checkout/orders/{order_id}/capture", headers=headers)
                     if res.status_code in (200, 201):
                         capture_data = res.json()
@@ -199,6 +204,15 @@ class PayPalService:
                             "verified": False,
                             "mode": "live_sandbox"
                         }
+            except httpx.TimeoutException as e:
+                logger.error(f"PayPal capture order timed out: {e}")
+                return {
+                    "order_id": order_id,
+                    "status": "FAILED",
+                    "error": f"PayPal Sandbox API timed out while capturing payment: {e}",
+                    "verified": False,
+                    "mode": "live_sandbox"
+                }
             except Exception as e:
                 logger.error(f"PayPal capture error: {e}")
                 return {
@@ -251,17 +265,28 @@ class PayPalService:
         Verifies incoming PayPal Webhook signature via PayPal Sandbox REST API.
         Reference: https://developer.paypal.com/api/rest/webhooks/rest/
         """
+        headers_lower = {str(k).lower(): str(v) for k, v in headers.items()}
+        auth_algo = headers_lower.get("paypal-auth-algo")
+        cert_url = headers_lower.get("paypal-cert-url")
+        transmission_id = headers_lower.get("paypal-transmission-id")
+        transmission_sig = headers_lower.get("paypal-transmission-sig")
+        transmission_time = headers_lower.get("paypal-transmission-time")
+
+        if not auth_algo or not cert_url or not transmission_id or not transmission_sig or not transmission_time:
+            logger.warning("PayPal webhook missing required cryptographic transmission headers.")
+            return False
+
         token = await self.get_access_token()
         if not token or not settings.PAYPAL_WEBHOOK_ID:
             # If in simulator mode or no webhook ID configured, return True in debug, False in production
             return settings.DEBUG
 
         verification_payload = {
-            "auth_algo": headers.get("paypal-auth-algo"),
-            "cert_url": headers.get("paypal-cert-url"),
-            "transmission_id": headers.get("paypal-transmission-id"),
-            "transmission_sig": headers.get("paypal-transmission-sig"),
-            "transmission_time": headers.get("paypal-transmission-time"),
+            "auth_algo": auth_algo,
+            "cert_url": cert_url,
+            "transmission_id": transmission_id,
+            "transmission_sig": transmission_sig,
+            "transmission_time": transmission_time,
             "webhook_id": settings.PAYPAL_WEBHOOK_ID,
             "webhook_event": body_dict
         }
@@ -271,7 +296,7 @@ class PayPalService:
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json"
             }
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
                 res = await client.post(
                     f"{self.base_url}/v1/notifications/verify-webhook-signature",
                     headers=req_headers,

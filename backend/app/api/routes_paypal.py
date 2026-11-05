@@ -220,6 +220,59 @@ async def create_paypal_order(
         message=f"Order created on backend ({result.get('mode')}). Ready for buyer approval."
     )
 
+@router.post("/orders/{order_id}/approve", response_model=PayPalOrderResponse)
+def approve_paypal_order(
+    order_id: str,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Records customer approval of a PayPal order prior to server capture.
+    Validates payment state transitions: CREATED -> APPROVED.
+    """
+    if not order_id or not order_id.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order ID cannot be empty.")
+
+    db_order = db.query(PayPalOrder).filter(PayPalOrder.paypal_order_id == order_id).first()
+    if not db_order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Order '{order_id}' not found.")
+
+    if db_order.user_id is not None:
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required: This order belongs to a registered merchant."
+            )
+        if current_user.id != db_order.user_id and current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access forbidden: You cannot modify an order belonging to another merchant account."
+            )
+
+    if db_order.status != "CREATED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid state transition: Cannot approve order in status '{db_order.status}'."
+        )
+
+    db_order.status = "APPROVED"
+    db.commit()
+    db.refresh(db_order)
+
+    return PayPalOrderResponse(
+        paypal_order_id=db_order.paypal_order_id,
+        status=db_order.status,
+        amount=db_order.amount,
+        currency=db_order.currency,
+        created_at=db_order.created_at,
+        capture_id=db_order.capture_id,
+        payer_email=db_order.payer_email,
+        payer_name=db_order.payer_name,
+        transaction_id=db_order.transaction_id,
+        verified_by_backend=True,
+        message="Customer approval recorded; ready for server capture."
+    )
+
 @router.post("/orders/{order_id}/capture", response_model=PayPalOrderResponse)
 async def capture_paypal_order(
     order_id: str,
@@ -497,6 +550,11 @@ def get_paypal_order(
 async def paypal_webhook_listener(request: Request, db: Session = Depends(get_db)):
     """
     Receives and cryptographically verifies PayPal webhook notifications.
+    Features:
+    - Signature verification against PayPal API
+    - Duplicate event deduplication protection
+    - Tamper-evident chained audit logging
+    - Automatic payment status reconciliation across orders and transactions
     """
     raw_body = await request.body()
     try:
@@ -510,20 +568,88 @@ async def paypal_webhook_listener(request: Request, db: Session = Depends(get_db
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="PayPal webhook signature verification failed."
+            detail="PayPal webhook signature verification failed or transmission headers invalid."
         )
 
     event_type = body_dict.get("event_type", "UNKNOWN")
-    resource_id = body_dict.get("resource", {}).get("id", "UNKNOWN")
+    event_id = body_dict.get("id") or body_dict.get("resource", {}).get("id", "UNKNOWN")
+    resource = body_dict.get("resource", {})
+
+    # 1. Duplicate event protection (deduplication)
+    prior_event = db.query(AuditLog).filter(
+        AuditLog.action == "PAYPAL_WEBHOOK_RECEIVED",
+        AuditLog.entity_id == event_id
+    ).first()
+    if prior_event:
+        return {
+            "status": "duplicate",
+            "message": "Webhook event already processed.",
+            "event_id": event_id,
+            "event_type": event_type
+        }
+
+    # 2. Payment status reconciliation
+    order_id = (
+        resource.get("id")
+        if event_type.startswith("CHECKOUT.ORDER.")
+        else resource.get("supplementary_data", {}).get("related_ids", {}).get("order_id")
+    )
+    capture_id = resource.get("id") if event_type.startswith("PAYMENT.CAPTURE.") else None
+
+    reconciled = False
+    db_order = None
+    if order_id:
+        db_order = db.query(PayPalOrder).filter(PayPalOrder.paypal_order_id == order_id).first()
+    if not db_order and capture_id:
+        db_order = db.query(PayPalOrder).filter(PayPalOrder.capture_id == capture_id).first()
+
+    if db_order:
+        if event_type == "CHECKOUT.ORDER.APPROVED" and db_order.status == "CREATED":
+            db_order.status = "APPROVED"
+            reconciled = True
+        elif event_type == "PAYMENT.CAPTURE.COMPLETED":
+            db_order.status = "COMPLETED"
+            if capture_id:
+                db_order.capture_id = capture_id
+            if db_order.transaction_id:
+                txn = db.query(Transaction).filter(Transaction.id == db_order.transaction_id).first()
+                if txn:
+                    txn.payment_status = "COMPLETED"
+            reconciled = True
+        elif event_type in ("PAYMENT.CAPTURE.DENIED", "PAYMENT.CAPTURE.DECLINED"):
+            db_order.status = "FAILED"
+            if db_order.transaction_id:
+                txn = db.query(Transaction).filter(Transaction.id == db_order.transaction_id).first()
+                if txn:
+                    txn.payment_status = "FAILED"
+            reconciled = True
+        elif event_type == "PAYMENT.CAPTURE.REFUNDED":
+            db_order.status = "REFUNDED"
+            if db_order.transaction_id:
+                txn = db.query(Transaction).filter(Transaction.id == db_order.transaction_id).first()
+                if txn:
+                    txn.payment_status = "REFUNDED"
+            reconciled = True
 
     record_audit_event(
         db=db,
         action="PAYPAL_WEBHOOK_RECEIVED",
         entity_type="PAYPAL_EVENT",
-        entity_id=resource_id,
+        entity_id=event_id,
         performed_by="paypal_webhook",
-        details={"event_type": event_type, "verified": True}
+        details={
+            "event_type": event_type,
+            "reconciled": reconciled,
+            "order_id": order_id,
+            "capture_id": capture_id
+        }
     )
     db.commit()
 
-    return {"status": "success", "event_type": event_type, "verified": True}
+    return {
+        "status": "success",
+        "event_id": event_id,
+        "event_type": event_type,
+        "verified": True,
+        "reconciled": reconciled
+    }
