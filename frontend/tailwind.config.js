@@ -8,76 +8,113 @@ export default {
   theme: {
     extend: {
       colors: {
+        // AI Security Operations Center (SOC) Master Color Palette
+        soc: {
+          bg: '#050A12',          // Deepest cinematic dark background
+          secondary: '#071522',   // Secondary dark panel
+          card: '#0C1B2A',        // Standard glassmorphism card
+          elevated: '#102538',    // Elevated card / hover state
+          border: '#16314D',      // Subtle dark blue-gray border
+          borderGlow: '#00E5FF33', // Cyan subtle border glow
+          cyan: '#00E5FF',        // Electric neon cyan
+          teal: '#00F5C8',        // Vivid trust teal
+          blue: '#1E6BFF',        // Deep cyber blue
+          text: '#F5FAFF',        // Crisp white primary text
+          textMuted: '#A6B6C7',   // Clean secondary silver-gray text
+          textDim: '#5B7083',     // Tertiary subtle text
+          danger: '#FF5263',      // High risk / critical anomaly
+          warning: '#FFB547',     // Medium risk / caution
+          success: '#24D6A0',     // Safe transaction / verified
+        },
+        // Backwards-compatible mapped tokens
         fintech: {
-          bg: '#F8FAFC',        // Clean light canvas (slate-50)
-          surface: '#FFFFFF',   // Pure white card
-          surfaceAlt: '#F1F5F9',// Subtle slate-100 background
+          bg: '#050A12',
+          surface: '#0C1B2A',
+          surfaceAlt: '#071522',
           navy: {
-            950: '#0A0F1D',
-            900: '#0F172A',     // Primary brand deep navy (slate-900)
-            800: '#1E293B',     // Secondary navy (slate-800)
-            700: '#334155',     // Navy muted
-            600: '#475569',
+            950: '#03060B',
+            900: '#050A12',
+            800: '#071522',
+            700: '#0C1B2A',
+            600: '#102538',
           },
           blue: {
-            50: '#EFF6FF',      // Light blue tint
-            100: '#DBEAFE',
-            500: '#3B82F6',
-            600: '#2563EB',     // Corporate fintech interactive blue
-            700: '#1D4ED8',     // Hover blue
-            800: '#1E40AF',
+            50: '#071522',
+            100: '#0C1B2A',
+            500: '#00E5FF',
+            600: '#00E5FF',
+            700: '#00B8D4',
+            800: '#0097A7',
           },
           teal: {
-            50: '#F0FDFA',
-            100: '#CCFBF1',
-            500: '#14B8A6',
-            600: '#0D9488',     // Trust & security teal
-            700: '#0F766E',
+            50: '#071A21',
+            100: '#0C2630',
+            500: '#00F5C8',
+            600: '#00F5C8',
+            700: '#00C49F',
           },
-          border: '#E2E8F0',    // Clean slate-200 border
-          borderLight: '#F1F5F9',
-          borderDark: '#CBD5E1',
-          text: '#0F172A',      // High-contrast primary text
-          textMuted: '#475569', // WCAG AA compliant secondary text (>= 4.5:1)
-          textSubtle: '#64748B',// Tertiary caption text
-          danger: '#E11D48',    // FinTech crimson / rose
-          dangerLight: '#FFF1F2',
-          dangerBorder: '#FECDD3',
-          dangerDark: '#9F1239',
-          warning: '#D97706',   // FinTech amber
-          warningLight: '#FFFBEB',
-          warningBorder: '#FDE68A',
-          warningDark: '#92400E',
-          success: '#059669',   // FinTech emerald
-          successLight: '#ECFDF5',
-          successBorder: '#A7F3D0',
-          successDark: '#065F46',
-          info: '#0284C7',      // Sky
-          infoLight: '#F0F9FF',
-          infoBorder: '#BAE6FD',
-          infoDark: '#075985',
+          border: '#16314D',
+          borderLight: '#1F4266',
+          borderDark: '#0A1826',
+          text: '#F5FAFF',
+          textMuted: '#A6B6C7',
+          textSubtle: '#5B7083',
+          danger: '#FF5263',
+          dangerLight: '#2A0E14',
+          dangerBorder: '#5C1D26',
+          dangerDark: '#E02E42',
+          warning: '#FFB547',
+          warningLight: '#261B0A',
+          warningBorder: '#5C4118',
+          warningDark: '#E09426',
+          success: '#24D6A0',
+          successLight: '#07241A',
+          successBorder: '#145941',
+          successDark: '#1BB886',
+          info: '#00E5FF',
+          infoLight: '#071F2B',
+          infoBorder: '#104961',
+          infoDark: '#00B8D4',
         },
-        // Mapped legacy aliases for seamless component styling
         cyber: {
-          bg: '#F8FAFC',
-          card: '#FFFFFF',
-          cardHover: '#F8FAFC',
-          border: '#E2E8F0',
-          borderLight: '#CBD5E1',
-          accent: '#2563EB',
-          danger: '#E11D48',
-          warning: '#D97706',
-          success: '#059669',
-          textMuted: '#475569',
-          textBright: '#0F172A',
+          bg: '#050A12',
+          card: '#0C1B2A',
+          cardHover: '#102538',
+          border: '#16314D',
+          borderLight: '#1F4266',
+          accent: '#00E5FF',
+          danger: '#FF5263',
+          warning: '#FFB547',
+          success: '#24D6A0',
+          textMuted: '#A6B6C7',
+          textBright: '#F5FAFF',
         }
       },
       boxShadow: {
-        'fintech-sm': '0 1px 2px 0 rgba(15, 23, 42, 0.04)',
-        'fintech': '0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04)',
-        'fintech-md': '0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.04)',
-        'fintech-lg': '0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03)',
-        'fintech-card': '0 0 0 1px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.05)',
+        'soc-card': '0 8px 32px 0 rgba(0, 0, 0, 0.45)',
+        'soc-glow-cyan': '0 0 25px rgba(0, 229, 255, 0.25)',
+        'soc-glow-teal': '0 0 25px rgba(0, 245, 200, 0.25)',
+        'soc-glow-lg': '0 0 50px rgba(0, 229, 255, 0.35)',
+        'fintech-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
+        'fintech': '0 4px 20px 0 rgba(0, 0, 0, 0.4)',
+        'fintech-md': '0 8px 30px 0 rgba(0, 0, 0, 0.5)',
+        'fintech-lg': '0 15px 40px 0 rgba(0, 0, 0, 0.6)',
+        'fintech-card': '0 0 0 1px #16314D, 0 8px 24px 0 rgba(0, 0, 0, 0.4)',
+      },
+      animation: {
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'float-slow': 'float 6s ease-in-out infinite',
+        'glow-sweep': 'sweep 3s ease-in-out infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+        sweep: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        }
       }
     },
   },

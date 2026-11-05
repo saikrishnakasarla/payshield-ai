@@ -107,15 +107,15 @@ export const SettingsDocs: React.FC = () => {
       <DemoNoticeBadge />
 
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-3">
+        <div className="p-4 rounded-xl bg-soc-danger/15 border border-soc-danger/40 text-soc-danger text-xs flex items-center justify-between gap-3 shadow-[0_0_15px_rgba(255,82,99,0.15)]">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-soc-danger flex-shrink-0" />
             <span>{errorMessage}</span>
           </div>
           {!isAuthenticated && (
             <Link
               to="/signin"
-              className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors focus-ring"
+              className="px-3 py-1 rounded-lg bg-soc-danger hover:bg-soc-danger/90 text-white text-xs font-semibold transition-colors focus-ring"
             >
               Sign In
             </Link>
@@ -129,19 +129,19 @@ export const SettingsDocs: React.FC = () => {
         <div className="lg:col-span-7 space-y-6">
           
           {/* Risk Engine Thresholds Form */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-5 shadow-sm">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+          <div className="bg-soc-card/90 border border-soc-cyan/25 rounded-2xl p-5 sm:p-6 space-y-5 shadow-[0_0_20px_rgba(0,0,0,0.4)] backdrop-blur-md">
+            <div className="flex items-center justify-between pb-3 border-b border-soc-cyan/20">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-sm text-slate-900">Deterministic Risk Thresholds</h3>
+                <SlidersHorizontal className="w-5 h-5 text-soc-cyan" />
+                <h3 className="font-bold text-sm text-white">Deterministic Risk Thresholds</h3>
               </div>
-              <span className="text-xs font-semibold text-slate-500">Live Configuration</span>
+              <span className="text-xs font-semibold text-soc-cyan">Live Configuration</span>
             </div>
 
             <form onSubmit={handleSaveThresholds} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">
+                  <label className="text-soc-text font-semibold block mb-1">
                     Baseline Amount Multiplier
                   </label>
                   <div className="relative">
@@ -152,15 +152,15 @@ export const SettingsDocs: React.FC = () => {
                       max="10.0"
                       value={baselineMultiplier}
                       onChange={(e) => setBaselineMultiplier(parseFloat(e.target.value))}
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full bg-soc-secondary/80 border border-soc-cyan/25 rounded-xl px-3.5 py-2 text-white font-mono focus:bg-soc-secondary focus:outline-none focus:border-soc-cyan focus:ring-2 focus:ring-soc-cyan/20"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[11px] font-mono">x baseline</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-soc-textMuted text-[11px] font-mono">x baseline</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 mt-1 block">Default: 3.0x (+35 pts)</span>
+                  <span className="text-[10px] text-soc-textMuted mt-1 block">Default: 3.0x (+35 pts)</span>
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">
+                  <label className="text-soc-text font-semibold block mb-1">
                     Velocity Window (Minutes)
                   </label>
                   <div className="relative">
@@ -170,15 +170,15 @@ export const SettingsDocs: React.FC = () => {
                       max="60"
                       value={velocityWindow}
                       onChange={(e) => setVelocityWindow(parseInt(e.target.value) || 10)}
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full bg-soc-secondary/80 border border-soc-cyan/25 rounded-xl px-3.5 py-2 text-white font-mono focus:bg-soc-secondary focus:outline-none focus:border-soc-cyan focus:ring-2 focus:ring-soc-cyan/20"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[11px] font-mono">mins</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-soc-textMuted text-[11px] font-mono">mins</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 mt-1 block">Window for ≥3 attempts (+25 pts)</span>
+                  <span className="text-[10px] text-soc-textMuted mt-1 block">Window for ≥3 attempts (+25 pts)</span>
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">
+                  <label className="text-soc-text font-semibold block mb-1">
                     Medium Risk Floor Score
                   </label>
                   <input
@@ -187,13 +187,13 @@ export const SettingsDocs: React.FC = () => {
                     max="50"
                     value={mediumRiskScore}
                     onChange={(e) => setMediumRiskScore(parseInt(e.target.value) || 35)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full bg-soc-secondary/80 border border-soc-cyan/25 rounded-xl px-3.5 py-2 text-white font-mono focus:bg-soc-secondary focus:outline-none focus:border-soc-cyan focus:ring-2 focus:ring-soc-cyan/20"
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Scores ≥ this trigger Medium Risk</span>
+                  <span className="text-[10px] text-soc-textMuted mt-1 block">Scores ≥ this trigger Medium Risk</span>
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">
+                  <label className="text-soc-text font-semibold block mb-1">
                     High Risk Floor Score
                   </label>
                   <input
@@ -202,20 +202,20 @@ export const SettingsDocs: React.FC = () => {
                     max="90"
                     value={highRiskScore}
                     onChange={(e) => setHighRiskScore(parseInt(e.target.value) || 70)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full bg-soc-secondary/80 border border-soc-cyan/25 rounded-xl px-3.5 py-2 text-white font-mono focus:bg-soc-secondary focus:outline-none focus:border-soc-cyan focus:ring-2 focus:ring-soc-cyan/20"
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Scores ≥ this trigger High Risk</span>
+                  <span className="text-[10px] text-soc-textMuted mt-1 block">Scores ≥ this trigger High Risk</span>
                 </div>
               </div>
 
               <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-soc-textMuted">
                   Settings take effect immediately on subsequent transactions.
                 </span>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all shadow-sm disabled:opacity-50 focus-ring cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl btn-cyan-gradient text-soc-bg font-bold transition-all shadow-[0_0_15px_rgba(0,229,255,0.3)] disabled:opacity-50 focus-ring cursor-pointer"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{isSaving ? 'Updating...' : 'Save Thresholds'}</span>
@@ -223,8 +223,8 @@ export const SettingsDocs: React.FC = () => {
               </div>
 
               {saveSuccess && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="p-3 rounded-xl bg-soc-teal/15 border border-soc-teal/30 text-soc-teal text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-soc-teal" />
                   <span>Thresholds updated in active runtime memory successfully.</span>
                 </div>
               )}
@@ -232,29 +232,29 @@ export const SettingsDocs: React.FC = () => {
           </div>
 
           {/* Integration & Credentials Inspection */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 text-xs shadow-sm">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+          <div className="bg-soc-card/90 border border-soc-cyan/25 rounded-2xl p-5 sm:p-6 space-y-4 text-xs shadow-[0_0_20px_rgba(0,0,0,0.4)] backdrop-blur-md">
+            <div className="flex items-center justify-between pb-3 border-b border-soc-cyan/20">
               <div className="flex items-center gap-2">
-                <Key className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-sm text-slate-900">Service Integrations</h3>
+                <Key className="w-5 h-5 text-soc-cyan" />
+                <h3 className="font-bold text-sm text-white">Service Integrations</h3>
               </div>
-              <span className="text-xs font-semibold text-slate-500">Backend Secrets Secured</span>
+              <span className="text-xs font-semibold text-soc-textMuted">Backend Secrets Secured</span>
             </div>
 
             <div className="space-y-3">
               {/* PayPal Sandbox Status */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="p-3.5 rounded-xl bg-soc-secondary/80 border border-soc-cyan/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <div className="font-bold text-slate-900">PayPal Orders v2 API</div>
-                  <div className="text-xs text-slate-500 mt-0.5 font-mono">
+                  <div className="font-bold text-white">PayPal Orders v2 API</div>
+                  <div className="text-xs text-soc-textMuted mt-0.5 font-mono">
                     Target: {settings?.paypal?.api_endpoint || 'https://api-m.sandbox.paypal.com'}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                     settings?.paypal?.is_configured
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                      ? 'bg-soc-teal/15 text-soc-teal border-soc-teal/30'
+                      : 'bg-soc-warning/15 text-soc-warning border-soc-warning/30'
                   }`}>
                     {settings?.paypal?.is_configured ? 'SANDBOX KEYS VERIFIED' : 'OFFLINE SIMULATOR'}
                   </span>
@@ -262,18 +262,18 @@ export const SettingsDocs: React.FC = () => {
               </div>
 
               {/* Gemini AI Status */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="p-3.5 rounded-xl bg-soc-secondary/80 border border-soc-cyan/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <div className="font-bold text-slate-900">Google Gemini Explainer</div>
-                  <div className="text-xs text-slate-500 mt-0.5 font-mono">
+                  <div className="font-bold text-white">Google Gemini Explainer</div>
+                  <div className="text-xs text-soc-textMuted mt-0.5 font-mono">
                     Model: {settings?.ai?.model || 'gemini-1.5-flash'}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                     settings?.ai?.is_configured
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                      ? 'bg-soc-teal/15 text-soc-teal border-soc-teal/30'
+                      : 'bg-soc-cyan/15 text-soc-cyan border-soc-cyan/30'
                   }`}>
                     {settings?.ai?.is_configured ? 'GEMINI LIVE' : 'DETERMINISTIC FALLBACK'}
                   </span>
@@ -287,38 +287,38 @@ export const SettingsDocs: React.FC = () => {
         <div className="lg:col-span-5 space-y-6">
           
           {/* Hackathon Principles Card */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-sm">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
-              <BookOpen className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-sm text-slate-900">Ethical AI & Compliance</h3>
+          <div className="bg-soc-card/90 border border-soc-cyan/25 rounded-2xl p-5 sm:p-6 space-y-4 shadow-[0_0_20px_rgba(0,0,0,0.4)] backdrop-blur-md">
+            <div className="flex items-center gap-2 pb-3 border-b border-soc-cyan/20">
+              <BookOpen className="w-5 h-5 text-soc-cyan" />
+              <h3 className="font-bold text-sm text-white">Ethical AI & Compliance</h3>
             </div>
 
-            <div className="space-y-3 text-xs text-slate-600 leading-relaxed font-sans">
+            <div className="space-y-3 text-xs text-soc-textMuted leading-relaxed font-sans">
               <p>
-                <strong className="text-slate-900">1. Probabilistic Review Only:</strong> PayShield AI never asserts 100% certainty or accuses buyers of criminality. All risk tiers represent recommendation indicators for merchant review.
+                <strong className="text-white">1. Probabilistic Review Only:</strong> PayShield AI never asserts 100% certainty or accuses buyers of criminality. All risk tiers represent recommendation indicators for merchant review.
               </p>
               <p>
-                <strong className="text-slate-900">2. Deterministic Scoring Grounding:</strong> Numeric risk scores (0–100) are generated purely by transparent rules. Gemini AI is used exclusively to explain evidence in plain English, never hallucinating new facts.
+                <strong className="text-white">2. Deterministic Scoring Grounding:</strong> Numeric risk scores (0–100) are generated purely by transparent rules. Gemini AI is used exclusively to explain evidence in plain English, never hallucinating new facts.
               </p>
               <p>
-                <strong className="text-slate-900">3. Non-Destructive Actions:</strong> The assistant does not block real consumer cards or deny customers automatically, protecting merchants from false-positive churn.
+                <strong className="text-white">3. Non-Destructive Actions:</strong> The assistant does not block real consumer cards or deny customers automatically, protecting merchants from false-positive churn.
               </p>
             </div>
           </div>
 
           {/* Database Demo Re-Seed */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 space-y-3 text-xs shadow-sm">
+          <div className="bg-soc-card/90 border border-soc-cyan/25 rounded-2xl p-5 sm:p-6 space-y-3 text-xs shadow-sm backdrop-blur-md">
             <div className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 text-slate-600" />
-              <h4 className="font-bold text-slate-900">Re-Seed Synthetic Database</h4>
+              <RefreshCw className="w-4 h-4 text-soc-textMuted" />
+              <h4 className="font-bold text-white">Re-Seed Synthetic Database</h4>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-soc-textMuted">
               Restores the database to 32 pristine synthetic demo transactions with pre-calculated baseline patterns for clean repeatable testing.
             </p>
             <button
               onClick={handleResetDemo}
               disabled={isResetting}
-              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold transition-all disabled:opacity-50 focus-ring cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-soc-secondary hover:bg-soc-elevated text-soc-text hover:text-white border border-soc-cyan/20 text-xs font-semibold transition-all disabled:opacity-50 focus-ring cursor-pointer"
             >
               {isResetting ? 'Re-seeding SQLite Database...' : 'Reset to Clean 32 Seed Transactions'}
             </button>

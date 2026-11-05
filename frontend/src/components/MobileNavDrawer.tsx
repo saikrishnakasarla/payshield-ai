@@ -68,7 +68,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClos
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-soc-bg/80 backdrop-blur-md"
             aria-hidden="true"
           />
 
@@ -78,37 +78,37 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClos
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 240 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 240 }}
             role="dialog"
             aria-modal="true"
             aria-label="Mobile Navigation"
-            className="fixed top-0 bottom-0 left-0 w-[84%] max-w-xs bg-white border-r border-slate-200 flex flex-col justify-between p-5 z-50 shadow-2xl overflow-y-auto"
+            className="fixed top-0 bottom-0 left-0 w-[84%] max-w-xs bg-soc-secondary/95 border-r border-soc-cyan/30 flex flex-col justify-between p-5 z-50 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-y-auto backdrop-blur-2xl"
           >
             <div className="space-y-6">
               {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+              <div className="flex items-center justify-between pb-4 border-b border-soc-cyan/20">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600">
+                  <div className="p-2 rounded-xl bg-soc-cyan/15 border border-soc-cyan/40 text-soc-cyan shadow-[0_0_12px_rgba(0,229,255,0.25)]">
                     <ShieldAlert className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div>
-                    <span className="text-sm font-bold tracking-tight text-slate-900 font-sans block">PayShield AI</span>
-                    <span className="text-[11px] font-mono text-teal-600 font-medium">Enterprise Protection</span>
+                    <span className="text-sm font-bold tracking-tight text-white font-sans block">PayShield AI</span>
+                    <span className="text-[11px] font-mono text-soc-teal font-medium">SOC Console</span>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-ring"
+                  className="p-2 rounded-xl text-soc-textMuted hover:text-white hover:bg-soc-card transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-ring cursor-pointer"
                   aria-label="Close navigation menu"
                 >
                   <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
 
-              {/* Navigation Items */}
-              <nav className="space-y-1.5" aria-label="Mobile navigation links">
+              {/* Navigation Links */}
+              <nav className="flex flex-col gap-1.5" aria-label="Mobile Navigation Drawer">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -117,35 +117,45 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClos
                       to={item.to}
                       onClick={onClose}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 text-xs font-medium min-h-[44px] focus-ring ${
+                        `flex items-start gap-3 p-3 rounded-xl transition-all duration-150 min-h-[48px] focus-ring ${
                           isActive
-                            ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600 shadow-sm'
-                            : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+                            ? 'bg-soc-cyan/20 text-soc-cyan border border-soc-cyan/40 shadow-[0_0_15px_rgba(0,229,255,0.2)]'
+                            : 'text-soc-textMuted hover:text-white hover:bg-soc-card/70 border border-transparent'
                         }`
                       }
                     >
-                      <Icon className="w-4 h-4 flex-shrink-0 text-slate-500" aria-hidden="true" />
-                      <div className="flex-1 truncate">
-                        <div className="leading-tight">{item.label}</div>
-                        <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">{item.desc}</div>
-                      </div>
+                      {({ isActive }) => (
+                        <>
+                          <div className={`p-1.5 rounded-lg ${isActive ? 'text-soc-cyan' : 'text-soc-textMuted'}`}>
+                            <Icon className="w-5 h-5" aria-hidden="true" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold tracking-tight font-sans text-white">{item.label}</div>
+                            <div className="text-[11px] text-soc-textMuted">{item.desc}</div>
+                          </div>
+                        </>
+                      )}
                     </NavLink>
                   );
                 })}
               </nav>
             </div>
 
-            {/* Bottom Profile and Authentication Area */}
-            <div className="pt-4 border-t border-slate-200 space-y-3">
+            {/* Bottom Auth Profile / Sign In */}
+            <div className="pt-4 border-t border-soc-cyan/20">
               {isAuthenticated && user ? (
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-full border border-teal-500/40 bg-gradient-to-tr from-teal-600 to-blue-600 flex items-center justify-center text-xs font-bold text-white shadow-sm flex-shrink-0">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-soc-card/90 border border-soc-cyan/20">
+                    <div className="w-9 h-9 rounded-full border border-soc-teal/40 bg-gradient-to-tr from-soc-card to-soc-secondary flex items-center justify-center text-xs font-bold text-soc-teal shadow-[0_0_10px_rgba(0,245,200,0.2)]">
                       {userInitials}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold text-slate-900 truncate">{user.full_name}</div>
-                      <div className="text-[11px] text-slate-500 truncate">{user.business_name || user.email}</div>
+                    <div className="overflow-hidden flex-1">
+                      <div className="text-xs font-semibold text-white truncate font-sans">
+                        {user.business_name || user.full_name}
+                      </div>
+                      <div className="text-[11px] text-soc-textMuted truncate font-mono">
+                        {user.email}
+                      </div>
                     </div>
                   </div>
 
@@ -155,35 +165,22 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClos
                       logout();
                       onClose();
                     }}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-medium transition-all min-h-[44px] focus-ring"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-soc-danger/40 bg-soc-danger/10 text-soc-danger hover:bg-soc-danger/20 text-xs font-semibold transition-all focus-ring min-h-[44px] cursor-pointer"
                   >
-                    <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
-                    <span>Sign Out</span>
+                    <LogOut className="w-4 h-4" aria-hidden="true" />
+                    <span>Sign Out of Console</span>
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <NavLink
-                    to="/signin"
-                    onClick={onClose}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold font-sans transition-all min-h-[44px] shadow-sm focus-ring"
-                  >
-                    <LogIn className="w-4 h-4" aria-hidden="true" />
-                    <span>Merchant Sign In</span>
-                  </NavLink>
-                  <NavLink
-                    to="/signup"
-                    onClick={onClose}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium font-sans border border-slate-300 transition-all min-h-[44px] focus-ring"
-                  >
-                    <span>Create Account</span>
-                  </NavLink>
-                </div>
+                <NavLink
+                  to="/signin"
+                  onClick={onClose}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl btn-cyan-gradient text-soc-bg text-xs font-bold transition-all shadow-[0_0_15px_rgba(0,229,255,0.3)] focus-ring min-h-[44px] cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4" aria-hidden="true" />
+                  <span>Sign In to Merchant Account</span>
+                </NavLink>
               )}
-
-              <div className="text-center text-[11px] font-mono text-slate-400">
-                PayPal AI Hackathon • 2026
-              </div>
             </div>
           </motion.aside>
         </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { DemoNoticeBadge } from './DemoNoticeBadge';
-import { RefreshCw, Play, LogIn, LogOut } from 'lucide-react';
+import { RefreshCw, Play, LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../lib/auth-context';
 
@@ -29,25 +29,25 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 mb-6">
+    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-soc-cyan/20 mb-6">
       <div>
         <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-sans">{title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans">{title}</h1>
           <DemoNoticeBadge compact />
         </div>
-        <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+        <p className="text-xs text-soc-textMuted mt-1">{subtitle}</p>
       </div>
 
       <div className="flex items-center flex-wrap gap-2.5 sm:gap-3">
         {/* Merchant Session Status */}
         {isAuthenticated && user ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm text-xs font-mono">
-            <span className="w-2 h-2 rounded-full bg-teal-500" aria-hidden="true" />
-            <span className="text-slate-900 font-bold truncate max-w-[140px]">{user.business_name || user.full_name}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-soc-card border border-soc-cyan/30 shadow-[0_0_12px_rgba(0,229,255,0.1)] text-xs font-mono">
+            <span className="w-2 h-2 rounded-full bg-soc-teal shadow-[0_0_6px_#00f5c8]" aria-hidden="true" />
+            <span className="text-white font-bold truncate max-w-[140px]">{user.business_name || user.full_name}</span>
             <button
               type="button"
               onClick={() => logout()}
-              className="text-slate-400 hover:text-rose-600 transition-colors ml-1 p-0.5 focus-ring rounded"
+              className="text-soc-textMuted hover:text-soc-danger transition-colors ml-1 p-0.5 focus-ring rounded cursor-pointer"
               title="Sign Out"
               aria-label="Sign Out"
             >
@@ -57,27 +57,27 @@ export const Header: React.FC<HeaderProps> = ({
         ) : (
           <Link
             to="/signin"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium border border-slate-300 shadow-sm transition-all focus-ring"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-soc-card hover:bg-soc-card/80 text-soc-text text-xs font-medium border border-soc-cyan/30 shadow-sm transition-all focus-ring"
           >
-            <LogIn className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+            <LogIn className="w-3.5 h-3.5 text-soc-cyan" aria-hidden="true" />
             <span>Merchant Sign In</span>
           </Link>
         )}
 
         {/* System Active Badge */}
         <div 
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-soc-teal/15 border border-soc-teal/30 text-soc-teal text-xs font-medium shadow-[0_0_10px_rgba(0,245,200,0.15)]"
           role="status"
           aria-label="System Protection Active"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-          <span>Protection Active</span>
+          <span className="w-2 h-2 rounded-full bg-soc-teal animate-pulse" aria-hidden="true" />
+          <span>SOC Shield Active</span>
         </div>
 
         {/* Timeframe selector pills */}
         {onTimeframeChange && (
           <div 
-            className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200"
+            className="flex items-center bg-soc-card p-1 rounded-xl border border-soc-cyan/20"
             role="group"
             aria-label="Select timeframe"
           >
@@ -86,10 +86,10 @@ export const Header: React.FC<HeaderProps> = ({
                 key={tf.id}
                 type="button"
                 onClick={() => onTimeframeChange(tf.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all focus-ring ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all focus-ring cursor-pointer ${
                   selectedTimeframe === tf.id
-                    ? 'bg-white text-blue-700 shadow-sm font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-soc-cyan text-soc-bg shadow-[0_0_10px_rgba(0,229,255,0.4)] font-bold'
+                    : 'text-soc-textMuted hover:text-white'
                 }`}
                 aria-pressed={selectedTimeframe === tf.id}
               >
@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Action: Test PayPal Sandbox */}
         <Link
           to="/sandbox"
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all focus-ring"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl btn-cyan-gradient text-soc-bg text-xs font-bold shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all focus-ring"
         >
           <Play className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
           <span>Test Sandbox</span>
@@ -114,10 +114,10 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={onResetDemo}
             disabled={isResetting}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium border border-slate-200 shadow-sm transition-all disabled:opacity-50 focus-ring"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-soc-card hover:bg-soc-elevated text-soc-text text-xs font-medium border border-soc-cyan/20 shadow-sm transition-all disabled:opacity-50 focus-ring cursor-pointer"
             title="Re-seed synthetic transactions with deterministic risk scores"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-blue-600' : 'text-slate-500'}`} aria-hidden="true" />
+            <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-soc-cyan' : 'text-soc-textMuted'}`} aria-hidden="true" />
             <span>{isResetting ? 'Resetting...' : 'Reset Demo'}</span>
           </button>
         )}

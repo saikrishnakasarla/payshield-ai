@@ -2,50 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  html {
-    color-scheme: light;
-  }
-
-  body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-blue-100 selection:text-blue-900;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  }
-
-  code, pre {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    font-feature-settings: "tnum";
-    font-variant-numeric: tabular-nums;
-  }
+:root {
+  color-scheme: dark;
 }
 
-/* Subtle clean fintech scrollbars */
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #050A12;
+  color: #F5FAFF;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar for Cinematic Theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F8FAFC;
+  background: #050A12;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #16314D;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #00E5FF88;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(12, 27, 42, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+}
+
+.glass-panel-elevated {
+  background: rgba(16, 37, 56, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.55), 0 0 20px rgba(0, 229, 255, 0.1);
+}
+
+.glass-input {
+  background: rgba(7, 21, 34, 0.75);
+  border: 1px solid rgba(22, 49, 77, 0.9);
+  color: #F5FAFF;
+  transition: all 0.25s ease;
+}
+
+.glass-input:focus {
+  border-color: #00E5FF;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
+  outline: none;
+}
+
+/* Glow Utilities */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35);
+}
+
+.glow-teal {
+  box-shadow: 0 0 20px rgba(0, 245, 200, 0.35);
+}
+
+.glow-border-cyan {
+  border-color: #00E5FF;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+}
+
+.btn-cyan-gradient {
+  background: linear-gradient(135deg, #00E5FF 0%, #0099FF 100%);
+  color: #050A12;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35);
+}
+
+.btn-cyan-gradient:hover {
+  background: linear-gradient(135deg, #33EBFF 0%, #1AABFF 100%);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.55);
+  transform: translateY(-1px);
+}
+
+.btn-cyan-gradient:active {
+  transform: translateY(0);
 }
 
 /* Accessible focus ring utility */
 .focus-ring {
-  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-soc-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-soc-bg;
 }
 
-/* Reduced motion accessibility rule */
+/* AI Security Operations Center (Design C) Theme Overrides */
+.bg-white {
+  background-color: rgba(12, 27, 42, 0.92) !important;
+  color: #F5FAFF;
+}
+
+.bg-slate-50 {
+  background-color: rgba(7, 21, 34, 0.88) !important;
+}
+
+.bg-slate-100 {
+  background-color: rgba(16, 37, 56, 0.85) !important;
+}
+
+.text-slate-900 {
+  color: #F5FAFF !important;
+}
+
+.text-slate-800,
+.text-slate-700 {
+  color: #D3E4F4 !important;
+}
+
+.text-slate-600,
+.text-slate-500 {
+  color: #A6B6C7 !important;
+}
+
+.border-slate-200,
+.border-slate-300,
+.border-slate-100 {
+  border-color: rgba(0, 229, 255, 0.22) !important;
+}
+
+/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

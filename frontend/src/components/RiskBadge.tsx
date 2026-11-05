@@ -11,27 +11,27 @@ interface RiskBadgeProps {
 export const RiskBadge: React.FC<RiskBadgeProps> = ({ level, score, size = 'md' }) => {
   const configs = {
     LOW: {
-      bg: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+      bg: 'bg-soc-teal/15 text-soc-teal border-soc-teal/40 shadow-[0_0_10px_rgba(0,245,200,0.15)]',
       icon: CheckCircle2,
-      iconColor: 'text-emerald-600',
+      iconColor: 'text-soc-teal',
       label: 'LOW RISK',
     },
     MEDIUM: {
-      bg: 'bg-amber-50 text-amber-800 border-amber-200',
+      bg: 'bg-soc-warning/15 text-soc-warning border-soc-warning/40 shadow-[0_0_10px_rgba(255,181,71,0.15)]',
       icon: AlertTriangle,
-      iconColor: 'text-amber-600',
+      iconColor: 'text-soc-warning',
       label: 'MEDIUM RISK',
     },
     HIGH: {
-      bg: 'bg-rose-50 text-rose-800 border-rose-200',
+      bg: 'bg-soc-danger/15 text-soc-danger border-soc-danger/40 shadow-[0_0_10px_rgba(255,82,99,0.2)]',
       icon: ShieldAlert,
-      iconColor: 'text-rose-600',
+      iconColor: 'text-soc-danger',
       label: 'HIGH RISK',
     },
     CRITICAL: {
-      bg: 'bg-red-100 text-red-900 border-red-300 font-bold',
+      bg: 'bg-red-950/80 text-red-200 border-red-500/60 font-bold shadow-[0_0_15px_rgba(255,82,99,0.35)]',
       icon: AlertOctagon,
-      iconColor: 'text-red-700',
+      iconColor: 'text-red-400',
       label: 'CRITICAL RISK',
     },
   };
@@ -51,19 +51,15 @@ export const RiskBadge: React.FC<RiskBadgeProps> = ({ level, score, size = 'md' 
     lg: 'w-4 h-4',
   };
 
-  const scoreText = score !== undefined ? ` (${score}/100)` : '';
-  const ariaLabel = `Risk Classification: ${config.label}${score !== undefined ? `, Score ${score} out of 100` : ''}`;
-
   return (
     <span
-      className={`inline-flex items-center rounded-full border font-mono tracking-wide transition-all ${config.bg} ${sizeClasses[size]}`}
+      className={`inline-flex items-center rounded-full border font-mono tracking-wide transition-all backdrop-blur-sm ${config.bg} ${sizeClasses[size]}`}
       role="status"
-      aria-label={ariaLabel}
     >
-      <IconComponent className={`${iconSizes[size]} ${config.iconColor} flex-shrink-0`} aria-hidden="true" />
+      <IconComponent className={`${iconSizes[size]} ${config.iconColor}`} aria-hidden="true" />
       <span>{config.label}</span>
       {score !== undefined && (
-        <span className="font-semibold text-slate-700">{scoreText}</span>
+        <span className="opacity-80 font-mono">({score})</span>
       )}
     </span>
   );

@@ -30,14 +30,14 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside 
-      className="hidden lg:flex w-20 bg-[#0F172A] border-r border-slate-800 flex-col items-center py-6 justify-between flex-shrink-0 z-30 select-none shadow-sm"
+      className="hidden lg:flex w-20 bg-soc-secondary border-r border-soc-cyan/20 flex-col items-center py-6 justify-between flex-shrink-0 z-30 select-none shadow-[4px_0_24px_rgba(0,0,0,0.5)] backdrop-blur-xl"
       aria-label="Desktop primary navigation"
     >
       {/* Top Logo */}
       <div className="flex flex-col items-center gap-6">
         <NavLink
           to="/"
-          className="relative p-3 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm group focus-ring"
+          className="relative p-3 rounded-2xl bg-soc-cyan/15 border border-soc-cyan/40 text-soc-cyan hover:bg-soc-cyan hover:text-soc-bg transition-all shadow-[0_0_20px_rgba(0,229,255,0.25)] group focus-ring cursor-pointer"
           title="PayShield AI — Financial Protection Platform"
           aria-label="PayShield AI Home"
         >
@@ -46,7 +46,7 @@ export const Sidebar: React.FC = () => {
         </NavLink>
 
         {/* Navigation Items */}
-        <nav className="flex flex-col items-center gap-2.5" aria-label="Main Navigation">
+        <nav className="flex flex-col items-center gap-3" aria-label="Main Navigation">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -56,8 +56,8 @@ export const Sidebar: React.FC = () => {
                 className={({ isActive }) =>
                   `relative p-3 rounded-xl transition-all duration-200 group flex items-center justify-center focus-ring ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      ? 'bg-soc-cyan/20 text-soc-cyan border border-soc-cyan/40 shadow-[0_0_15px_rgba(0,229,255,0.3)]'
+                      : 'text-soc-textMuted hover:text-soc-cyan hover:bg-soc-card/80 border border-transparent'
                   }`
                 }
                 title={item.label}
@@ -67,7 +67,7 @@ export const Sidebar: React.FC = () => {
                   <>
                     <Icon className="w-5 h-5" aria-hidden="true" />
                     {isActive && (
-                      <span className="absolute -left-3 w-1.5 h-6 bg-blue-400 rounded-r-full" aria-hidden="true" />
+                      <span className="absolute -left-3.5 w-1.5 h-6 bg-soc-cyan rounded-r-full shadow-[0_0_8px_#00e5ff]" aria-hidden="true" />
                     )}
                   </>
                 )}
@@ -81,7 +81,7 @@ export const Sidebar: React.FC = () => {
       <div className="flex flex-col items-center gap-4">
         <NavLink
           to="/settings"
-          className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all focus-ring"
+          className="p-2.5 rounded-xl text-soc-textMuted hover:text-soc-cyan hover:bg-soc-card transition-all focus-ring"
           title="Settings & System Status"
           aria-label="System Settings"
         >
@@ -95,15 +95,15 @@ export const Sidebar: React.FC = () => {
             title={`${user.full_name} (${user.email})`}
             aria-label={`Profile: ${user.full_name}`}
           >
-            <div className="w-10 h-10 rounded-full border-2 border-teal-400/40 bg-gradient-to-tr from-teal-600 to-blue-700 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+            <div className="w-10 h-10 rounded-full border border-soc-teal/50 bg-gradient-to-tr from-soc-card to-soc-secondary flex items-center justify-center text-xs font-bold text-soc-teal shadow-[0_0_12px_rgba(0,245,200,0.25)]">
               {userInitials}
             </div>
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0F172A]" aria-hidden="true" />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-soc-teal border-2 border-soc-secondary shadow-[0_0_6px_#00f5c8]" aria-hidden="true" />
           </NavLink>
         ) : (
           <NavLink
             to="/signin"
-            className="w-10 h-10 rounded-full border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-all focus-ring"
+            className="w-10 h-10 rounded-full border border-soc-cyan/30 bg-soc-card hover:bg-soc-cyan/20 text-soc-cyan flex items-center justify-center transition-all focus-ring shadow-[0_0_10px_rgba(0,229,255,0.15)]"
             title="Sign In to Merchant Account"
             aria-label="Sign In"
           >
