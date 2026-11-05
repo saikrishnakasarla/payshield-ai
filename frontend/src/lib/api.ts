@@ -143,6 +143,7 @@ export async function fetchTransactions(params: {
   review_status?: string;
   sort_by?: string;
   sort_order?: string;
+  provider?: string;
 }): Promise<{ total: number; items: Transaction[]; page: number; limit: number; pages: number }> {
   const query = new URLSearchParams();
   if (params.page) query.append('page', params.page.toString());
@@ -152,6 +153,7 @@ export async function fetchTransactions(params: {
   if (params.review_status && params.review_status !== 'ALL') query.append('review_status', params.review_status);
   if (params.sort_by) query.append('sort_by', params.sort_by);
   if (params.sort_order) query.append('sort_order', params.sort_order);
+  if (params.provider && params.provider !== 'ALL') query.append('provider', params.provider);
 
   const res = await fetch(`${API_BASE}/transactions?${query.toString()}`, {
     headers: getAuthHeaders(),

@@ -32,6 +32,24 @@ class PayPalCredentialsUpdateRequest(BaseModel):
 
 router = APIRouter(prefix="/api/paypal", tags=["PayPal"])
 
+@router.get("/credentials", response_model=Dict[str, Any])
+def get_paypal_credentials(
+    current_user: Optional[User] = Depends(get_optional_current_user)
+):
+    """
+    Returns masked runtime PayPal credentials preview safely without exposing secrets.
+    """
+    c_id = settings.PAYPAL_CLIENT_ID or ""
+    masked_id = (c_id[:6] + "..." + c_id[-4:]) if len(c_id) > 10 else ("configured" if c_id else "not_configured")
+    return {
+        "is_configured": paypal_service.is_configured(),
+        "client_id_preview": masked_id,
+        "mock_simulator": settings.PAYPAL_MOCK_SIMULATOR,
+        "environment": settings.PAYPAL_ENV,
+        "api_endpoint": settings.PAYPAL_BASE_URL
+    }
+
+@router.post("/credentials", response_model=Dict[str, Any])
 @router.put("/credentials", response_model=Dict[str, Any])
 async def update_paypal_credentials(
     creds_in: PayPalCredentialsUpdateRequest,
@@ -198,6 +216,20 @@ async def capture_paypal_order(
             detail=f"Order '{order_id}' not found. Capture requires a valid, pre-created order."
         )
 
+    # Merchant ownership check: Prevent cross-merchant order capturing
+    if db_order.user_id is not None and current_user is not None and db_order.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: You cannot capture an order belonging to another merchant account."
+        )
+
+    # Rejection of failed orders
+    if db_order.status == "FAILED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Order is marked as FAILED and cannot be captured."
+        )
+
     # Idempotent return for already captured orders
     if db_order.status == "COMPLETED":
         return PayPalOrderResponse(
@@ -306,6 +338,9 @@ async def capture_paypal_order(
         items_json=items_json,
         is_synthetic=False,
         source="PAYPAL_SANDBOX",
+        provider="PAYPAL",
+        provider_order_id=order_id,
+        provider_transaction_id=capture_res.get("capture_id"),
         risk_score=score,
         risk_level=risk_level,
         ml_fraud_probability=ml_prediction.get("fraud_probability", 0.0),

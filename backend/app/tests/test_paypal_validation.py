@@ -6,11 +6,14 @@ from app.database import SessionLocal
 from app.api.routes_paypal import (
     get_paypal_status,
     get_paypal_config,
+    get_paypal_credentials,
     create_paypal_order,
     capture_paypal_order,
     update_paypal_credentials,
     PayPalCredentialsUpdateRequest
 )
+from app.models.paypal_order import PayPalOrder
+from app.models.user import User
 from app.schemas.paypal import PayPalOrderCreateRequest
 
 def test_paypal_status_endpoint():
@@ -99,5 +102,68 @@ async def test_update_paypal_credentials():
         res = await update_paypal_credentials(creds, None, db)
         assert "client_id_preview" in res
         assert "test_cli" in res["client_id_preview"]
+    finally:
+        db.close()
+
+
+def test_get_paypal_credentials():
+    data = get_paypal_credentials(current_user=None)
+    assert "is_configured" in data
+    assert "client_id_preview" in data
+    assert "mock_simulator" in data
+    assert "client_secret" not in data  # Never expose secrets
+
+@pytest.mark.asyncio
+async def test_capture_failed_order_rejected():
+    settings.PAYPAL_MOCK_SIMULATOR = True
+    db = SessionLocal()
+    try:
+        req = PayPalOrderCreateRequest(
+            amount=50.0,
+            currency="USD",
+            item_name="Order That Will Fail"
+        )
+        order_res = await create_paypal_order(req, None, db)
+        order_id = order_res.paypal_order_id
+        
+        # Mark order as FAILED
+        db_order = db.query(PayPalOrder).filter(PayPalOrder.paypal_order_id == order_id).first()
+        db_order.status = "FAILED"
+        db.commit()
+
+        # Attempt to capture should raise 400 Bad Request
+        with pytest.raises(HTTPException) as exc_info:
+            await capture_paypal_order(order_id, None, db)
+        assert exc_info.value.status_code == 400
+        assert "FAILED" in exc_info.value.detail
+    finally:
+        db.close()
+
+@pytest.mark.asyncio
+async def test_cross_merchant_order_capture_rejected():
+    settings.PAYPAL_MOCK_SIMULATOR = True
+    db = SessionLocal()
+    try:
+        # Create merchant A and merchant B mock objects
+        merchant_a = User(id=101, email="merchant_a@example.com")
+        merchant_b = User(id=102, email="merchant_b@example.com")
+
+        req = PayPalOrderCreateRequest(
+            amount=75.0,
+            currency="USD",
+            item_name="Merchant A Product"
+        )
+        order_res = await create_paypal_order(req, merchant_a, db)
+        order_id = order_res.paypal_order_id
+
+        # Merchant B tries to capture Merchant A's order -> HTTP 403
+        with pytest.raises(HTTPException) as exc_info:
+            await capture_paypal_order(order_id, merchant_b, db)
+        assert exc_info.value.status_code == 403
+        assert "another merchant account" in exc_info.value.detail
+
+        # Merchant A can capture their own order successfully
+        cap_res = await capture_paypal_order(order_id, merchant_a, db)
+        assert cap_res.status == "COMPLETED"
     finally:
         db.close()
