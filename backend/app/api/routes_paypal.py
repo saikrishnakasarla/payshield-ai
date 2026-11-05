@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
 import json
 import uuid
+import logging
+
+logger = logging.getLogger("payshield.paypal_routes")
 
 from app.database import get_db
 from app.models.paypal_order import PayPalOrder
@@ -487,7 +491,41 @@ async def capture_paypal_order(
             "hybrid_score": ml_prediction.get("hybrid_score", score)
         }
     )
-    db.commit()
+    try:
+        db.commit()
+    except Exception as db_err:
+        logger.critical(
+            f"DATABASE COMMIT FAILED after authoritative PayPal capture {capture_res.get('capture_id')} for order {order_id}: {db_err}"
+        )
+        db.rollback()
+        # Ensure the order itself reflects completed capture status in an isolated transaction
+        try:
+            from app.database import SessionLocal
+            with SessionLocal() as rec_db:
+                rec_order = rec_db.query(PayPalOrder).filter(PayPalOrder.paypal_order_id == order_id).first()
+                if rec_order:
+                    rec_order.status = "COMPLETED"
+                    rec_order.capture_id = capture_res.get("capture_id")
+                    rec_order.captured_at = datetime.utcnow()
+                    rec_db.commit()
+        except Exception as rec_err:
+            logger.error(f"Emergency order recovery failed for order {order_id}: {rec_err}")
+
+        # DO NOT falsely report payment failure when PayPal capture succeeded!
+        return PayPalOrderResponse(
+            paypal_order_id=order_id,
+            status="COMPLETED",
+            amount=db_order.amount,
+            currency=db_order.currency,
+            created_at=db_order.created_at,
+            capture_id=capture_res.get("capture_id"),
+            payer_email=capture_res.get("payer_email") or db_order.payer_email,
+            payer_name=capture_res.get("payer_name") or db_order.payer_name,
+            transaction_id=None,
+            verified_by_backend=True,
+            risk_evaluation=None,
+            message="Payment captured successfully with PayPal. Transaction record is queued for reconciliation."
+        )
 
     return PayPalOrderResponse(
         paypal_order_id=order_id,
@@ -511,6 +549,102 @@ async def capture_paypal_order(
             "recommended_action": ai_res.get("recommended_action", "approve")
         },
         message="Payment verified with PayPal Sandbox and screened by PayShield AI Multi-Signal Engine."
+    )
+
+@router.post("/orders/{order_id}/reconcile", response_model=PayPalOrderResponse)
+def reconcile_paypal_order(
+    order_id: str,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Reconciles a captured PayPal order with a missing Transaction or RiskAnalysis record.
+    Used for self-healing after database failures or network interruptions.
+    """
+    db_order = db.query(PayPalOrder).filter(PayPalOrder.paypal_order_id == order_id).first()
+    if not db_order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Order '{order_id}' not found.")
+
+    if db_order.user_id is not None:
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required: This order belongs to a registered merchant."
+            )
+        if current_user.id != db_order.user_id and current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access forbidden: You cannot modify an order belonging to another merchant account."
+            )
+
+    if db_order.status != "COMPLETED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot reconcile order in status '{db_order.status}'. Only COMPLETED orders require transaction reconciliation."
+        )
+
+    # Check if transaction already linked
+    if db_order.transaction_id:
+        existing_txn = db.query(Transaction).filter(Transaction.id == db_order.transaction_id).first()
+        if existing_txn:
+            return PayPalOrderResponse(
+                paypal_order_id=db_order.paypal_order_id,
+                status=db_order.status,
+                amount=db_order.amount,
+                currency=db_order.currency,
+                created_at=db_order.created_at,
+                capture_id=db_order.capture_id,
+                payer_email=db_order.payer_email,
+                payer_name=db_order.payer_name,
+                transaction_id=existing_txn.id,
+                verified_by_backend=True,
+                message="Order is already fully reconciled with transaction record."
+            )
+
+    # Reconcile missing Transaction
+    ref_id = f"PP-{db_order.paypal_order_id[-8:]}"
+    existing_txn = db.query(Transaction).filter(
+        or_(
+            Transaction.reference_id == ref_id,
+            Transaction.provider_transaction_id == db_order.capture_id
+        )
+    ).first()
+
+    if not existing_txn:
+        existing_txn = Transaction(
+            user_id=db_order.user_id,
+            reference_id=ref_id,
+            amount=db_order.amount,
+            currency=db_order.currency,
+            payment_status="COMPLETED",
+            customer_id=f"PP-{uuid.uuid4().hex[:6].upper()}",
+            customer_name=db_order.payer_name or "PayPal Customer",
+            customer_email=db_order.payer_email or "buyer@paypal.com",
+            provider="PAYPAL",
+            provider_order_id=db_order.paypal_order_id,
+            provider_transaction_id=db_order.capture_id,
+            is_synthetic=False,
+            source="PAYPAL_SANDBOX"
+        )
+        db.add(existing_txn)
+        db.flush()
+
+    db_order.transaction_id = existing_txn.id
+    db.commit()
+    db.refresh(db_order)
+
+    return PayPalOrderResponse(
+        paypal_order_id=db_order.paypal_order_id,
+        status=db_order.status,
+        amount=db_order.amount,
+        currency=db_order.currency,
+        created_at=db_order.created_at,
+        capture_id=db_order.capture_id,
+        payer_email=db_order.payer_email,
+        payer_name=db_order.payer_name,
+        transaction_id=existing_txn.id,
+        verified_by_backend=True,
+        message="Order successfully reconciled with transaction record."
     )
 
 @router.get("/orders/{order_id}", response_model=Dict[str, Any])
@@ -615,6 +749,37 @@ async def paypal_webhook_listener(request: Request, db: Session = Depends(get_db
                 txn = db.query(Transaction).filter(Transaction.id == db_order.transaction_id).first()
                 if txn:
                     txn.payment_status = "COMPLETED"
+            else:
+                # Self-healing: reconcile missing transaction after a post-capture database failure
+                ref_id = f"PP-{db_order.paypal_order_id[-8:]}"
+                existing_txn = db.query(Transaction).filter(
+                    or_(
+                        Transaction.reference_id == ref_id,
+                        Transaction.provider_transaction_id == (capture_id or db_order.capture_id)
+                    )
+                ).first()
+                if existing_txn:
+                    db_order.transaction_id = existing_txn.id
+                    existing_txn.payment_status = "COMPLETED"
+                else:
+                    new_txn = Transaction(
+                        user_id=db_order.user_id,
+                        reference_id=ref_id,
+                        amount=db_order.amount,
+                        currency=db_order.currency,
+                        payment_status="COMPLETED",
+                        customer_id=f"PP-{uuid.uuid4().hex[:6].upper()}",
+                        customer_name=db_order.payer_name or "PayPal Customer",
+                        customer_email=db_order.payer_email or "buyer@paypal.com",
+                        provider="PAYPAL",
+                        provider_order_id=db_order.paypal_order_id,
+                        provider_transaction_id=capture_id or db_order.capture_id,
+                        is_synthetic=False,
+                        source="PAYPAL_SANDBOX"
+                    )
+                    db.add(new_txn)
+                    db.flush()
+                    db_order.transaction_id = new_txn.id
             reconciled = True
         elif event_type in ("PAYMENT.CAPTURE.DENIED", "PAYMENT.CAPTURE.DECLINED"):
             db_order.status = "FAILED"

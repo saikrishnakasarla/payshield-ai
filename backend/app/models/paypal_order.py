@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Index, Integer, String, Float, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -16,9 +16,13 @@ class PayPalOrder(Base):
     payer_email = Column(String(128), nullable=True)
     payer_name = Column(String(128), nullable=True)
     raw_response_json = Column(Text, nullable=True)
-    transaction_id = Column(Integer, ForeignKey("transactions.id", ondelete="SET NULL"), nullable=True)
+    transaction_id = Column(Integer, ForeignKey("transactions.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     captured_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("ix_paypal_orders_user_created", "user_id", "created_at"),
+    )
 
     # Relationships
     user = relationship("User", back_populates="paypal_orders")

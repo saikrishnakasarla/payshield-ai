@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Index, Integer, String, Float, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -7,7 +7,7 @@ class RiskAnalysis(Base):
     __tablename__ = "risk_analyses"
 
     id = Column(Integer, primary_key=True, index=True)
-    transaction_id = Column(Integer, ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False)
+    transaction_id = Column(Integer, ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True)
     
     # Deterministic Heuristic Risk Score (0-100)
     deterministic_score = Column(Integer, nullable=False)
@@ -28,6 +28,10 @@ class RiskAnalysis(Base):
     model_used = Column(String(64), default="RandomForest-v1.0+Gemini")
     
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("ix_risk_analyses_txn_created", "transaction_id", "created_at"),
+    )
 
     # Relationships
     transaction = relationship("Transaction", back_populates="analyses")

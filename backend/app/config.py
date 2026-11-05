@@ -70,9 +70,21 @@ class Settings(BaseSettings):
             "jwt-secret-placeholder"
         ]
         
-        # In Vercel serverless environment, redirect SQLite to writable /tmp directory
-        if os.environ.get("VERCEL") and self.DATABASE_URL == "sqlite:///./payshield.db":
-            object.__setattr__(self, "DATABASE_URL", "sqlite:////tmp/payshield.db")
+        # In Vercel serverless environment, enforce persistent PostgreSQL for financial records
+        if os.environ.get("VERCEL"):
+            persistent_url = os.environ.get("POSTGRES_URL") or os.environ.get("DATABASE_URL")
+            if persistent_url and not persistent_url.startswith("sqlite"):
+                if persistent_url.startswith("postgres://"):
+                    persistent_url = persistent_url.replace("postgres://", "postgresql://", 1)
+                object.__setattr__(self, "DATABASE_URL", persistent_url)
+            elif is_production:
+                raise ValueError(
+                    "FATAL DATABASE CONFIGURATION: Ephemeral /tmp SQLite storage cannot be used for "
+                    "permanent financial transaction records in production. "
+                    "Please configure a persistent PostgreSQL database connection via POSTGRES_URL or DATABASE_URL."
+                )
+            elif self.DATABASE_URL == "sqlite:///./payshield.db":
+                object.__setattr__(self, "DATABASE_URL", "sqlite:////tmp/payshield.db")
 
         if is_production:
             if not self.SECRET_KEY or self.SECRET_KEY.strip() in insecure_defaults:

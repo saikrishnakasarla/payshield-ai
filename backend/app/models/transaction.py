@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, ForeignKey
+from sqlalchemy import Column, Index, Integer, String, Float, DateTime, Boolean, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -48,6 +48,12 @@ class Transaction(Base):
     review_notes = Column(Text, nullable=True)
     reviewed_at = Column(DateTime, nullable=True)
     reviewer = Column(String(64), default="Merchant User")
+
+    __table_args__ = (
+        Index("ix_transactions_user_timestamp", "user_id", "timestamp"),
+        Index("ix_transactions_customer_timestamp", "customer_id", "timestamp"),
+        Index("ix_transactions_provider_txnid", "provider_transaction_id"),
+    )
 
     # Relationships
     user = relationship("User", back_populates="transactions")
