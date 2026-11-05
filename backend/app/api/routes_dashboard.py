@@ -35,24 +35,16 @@ def get_dashboard_summary(
 
     # Base query for timeframe with data isolation
     query = db.query(Transaction).filter(Transaction.timestamp >= start_time)
-    # Always include all verified payment providers in the dashboard
-    verified_sources = ["PAYPAL_SANDBOX", "STRIPE_TEST", "RAZORPAY_TEST", "ADYEN_TEST"]
     if current_user:
-        query = query.filter(
-            or_(
-                Transaction.user_id == current_user.id,
-                Transaction.is_synthetic == True,
-                Transaction.source.in_(verified_sources)
+        if current_user.role != "admin":
+            query = query.filter(
+                or_(
+                    Transaction.user_id == current_user.id,
+                    Transaction.user_id.is_(None)
+                )
             )
-        )
     else:
-        # Unauthenticated: show synthetic demos + real provider sandbox/test captures
-        query = query.filter(
-            or_(
-                Transaction.is_synthetic == True,
-                Transaction.source.in_(verified_sources)
-            )
-        )
+        query = query.filter(Transaction.user_id.is_(None))
 
     all_txns = query.all()
     total_txns_count = len(all_txns)
@@ -277,6 +269,7 @@ def get_dashboard_summary(
 @router.get("/paypal-transactions")
 def get_paypal_sandbox_transactions(
     limit: int = Query(500, ge=1, le=1000),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -284,17 +277,26 @@ def get_paypal_sandbox_transactions(
     Keeps them strictly separate from synthetic demo data.
     Used by the dashboard to display verified PayPal transactions.
     """
-    txns = (
+    query = (
         db.query(Transaction)
         .filter(
             Transaction.source == "PAYPAL_SANDBOX",
             Transaction.is_synthetic == False,
             Transaction.payment_status == "COMPLETED"
         )
-        .order_by(Transaction.timestamp.desc())
-        .limit(limit)
-        .all()
     )
+    if current_user:
+        if current_user.role != "admin":
+            query = query.filter(
+                or_(
+                    Transaction.user_id == current_user.id,
+                    Transaction.user_id.is_(None)
+                )
+            )
+    else:
+        query = query.filter(Transaction.user_id.is_(None))
+
+    txns = query.order_by(Transaction.timestamp.desc()).limit(limit).all()
 
     # Fetch related PayPal order data for capture IDs
     results = []

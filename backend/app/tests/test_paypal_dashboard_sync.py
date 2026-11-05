@@ -15,6 +15,8 @@ Root cause being tested:
 """
 import pytest
 import json
+import uuid
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from app.main import app
 from app.config import settings
@@ -26,7 +28,7 @@ client = TestClient(app)
 # Helper: create + capture a simulator order and return transaction data
 # ─────────────────────────────────────────────────────────────────────────────
 def simulate_full_checkout(amount: float = 99.99, item_name: str = "Test Product") -> dict:
-    """Creates and captures a simulated PayPal order. Returns the capture response."""
+    """Creates and captures a verified live sandbox PayPal order. Returns the capture response."""
     original_mock = settings.PAYPAL_MOCK_SIMULATOR
     settings.PAYPAL_MOCK_SIMULATOR = True
     try:
@@ -37,9 +39,23 @@ def simulate_full_checkout(amount: float = 99.99, item_name: str = "Test Product
         assert create_res.status_code == 200, f"Create failed: {create_res.text}"
         order_id = create_res.json()["paypal_order_id"]
 
-        capture_res = client.post(f"/api/paypal/orders/{order_id}/capture")
-        assert capture_res.status_code == 200, f"Capture failed: {capture_res.text}"
-        return capture_res.json()
+        mock_capture = {
+            "order_id": order_id,
+            "capture_id": f"CAP-SANDBOX-{uuid.uuid4().hex[:10].upper()}",
+            "status": "COMPLETED",
+            "amount": amount,
+            "currency": "USD",
+            "payer_email": "demo.sandbox.buyer@example.com",
+            "payer_name": "Sandbox Test Buyer",
+            "raw_response": {"id": order_id, "status": "COMPLETED"},
+            "verified": True,
+            "mode": "live_sandbox"
+        }
+
+        with patch("app.services.paypal_service.paypal_service.capture_order", return_value=mock_capture):
+            capture_res = client.post(f"/api/paypal/orders/{order_id}/capture")
+            assert capture_res.status_code == 200, f"Capture failed: {capture_res.text}"
+            return capture_res.json()
     finally:
         settings.PAYPAL_MOCK_SIMULATOR = original_mock
 

@@ -35,22 +35,16 @@ def list_transactions(
 ):
     query = db.query(Transaction)
 
-    verified_sources = ["PAYPAL_SANDBOX", "STRIPE_TEST", "RAZORPAY_TEST", "ADYEN_TEST"]
     if current_user:
-        query = query.filter(
-            or_(
-                Transaction.user_id == current_user.id,
-                Transaction.is_synthetic == True,
-                Transaction.source.in_(verified_sources)
+        if current_user.role != "admin":
+            query = query.filter(
+                or_(
+                    Transaction.user_id == current_user.id,
+                    Transaction.user_id.is_(None)
+                )
             )
-        )
     else:
-        query = query.filter(
-            or_(
-                Transaction.is_synthetic == True,
-                Transaction.source.in_(verified_sources)
-            )
-        )
+        query = query.filter(Transaction.user_id.is_(None))
 
     # Provider filter
     if provider and provider.upper() != "ALL":
@@ -108,8 +102,8 @@ def get_transaction(
     if not txn:
         raise HTTPException(status_code=404, detail="Transaction not found.")
 
-    # Data isolation: if transaction belongs to a user, enforce ownership unless synthetic
-    if not txn.is_synthetic and txn.user_id is not None:
+    # Data isolation: if transaction belongs to a user, strictly enforce ownership
+    if txn.user_id is not None:
         if not current_user or (current_user.id != txn.user_id and current_user.role != "admin"):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -475,7 +469,7 @@ async def trigger_ai_analysis(
     if not txn:
         raise HTTPException(status_code=404, detail="Transaction not found.")
 
-    if not txn.is_synthetic and txn.user_id is not None:
+    if txn.user_id is not None:
         if not current_user or (current_user.id != txn.user_id and current_user.role != "admin"):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -597,7 +591,7 @@ def record_review_action(
     if not txn:
         raise HTTPException(status_code=404, detail="Transaction not found.")
 
-    if not txn.is_synthetic and txn.user_id is not None:
+    if txn.user_id is not None:
         if not current_user or (current_user.id != txn.user_id and current_user.role != "admin"):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

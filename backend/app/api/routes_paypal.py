@@ -20,7 +20,7 @@ from app.schemas.paypal import (
     PayPalConfigResponse
 )
 from app.services.paypal_service import paypal_service
-from app.services.auth import get_optional_current_user
+from app.services.auth import get_current_user, get_optional_current_user
 from app.risk_engine.engine import risk_engine
 from app.services.ai_explainer import ai_explainer
 from app.config import settings
@@ -34,11 +34,18 @@ router = APIRouter(prefix="/api/paypal", tags=["PayPal"])
 
 @router.get("/credentials", response_model=Dict[str, Any])
 def get_paypal_credentials(
-    current_user: Optional[User] = Depends(get_optional_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Returns masked runtime PayPal credentials preview safely without exposing secrets.
+    Requires authenticated merchant or admin.
     """
+    if current_user.role not in ("merchant", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Only merchant administrators can inspect payment credentials."
+        )
+
     c_id = settings.PAYPAL_CLIENT_ID or ""
     masked_id = (c_id[:6] + "..." + c_id[-4:]) if len(c_id) > 10 else ("configured" if c_id else "not_configured")
     return {
@@ -53,13 +60,19 @@ def get_paypal_credentials(
 @router.put("/credentials", response_model=Dict[str, Any])
 async def update_paypal_credentials(
     creds_in: PayPalCredentialsUpdateRequest,
-    current_user: Optional[User] = Depends(get_optional_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Dynamically configures PayPal Sandbox credentials at runtime for demonstrations.
+    Requires authenticated merchant or admin.
     Validates credentials directly against the PayPal Sandbox OAuth endpoint.
     """
+    if current_user.role not in ("merchant", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Only merchant administrators can configure payment credentials."
+        )
     c_id = creds_in.client_id.strip()
     c_secret = creds_in.client_secret.strip()
 
@@ -147,9 +160,19 @@ async def create_paypal_order(
     Server strictly validates amount and currency before communicating with PayPal API.
     """
     if order_in.amount <= 0:
-        raise HTTPException(status_code=400, detail="Order amount must be greater than zero.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order amount must be greater than zero.")
     if order_in.amount > 100000:
-        raise HTTPException(status_code=400, detail="Sandbox test orders cannot exceed $100,000.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sandbox test orders cannot exceed $100,000.")
+
+    allowed_currencies = {"USD", "EUR", "GBP", "CAD", "AUD", "INR", "JPY"}
+    if not order_in.currency or order_in.currency.strip().upper() not in allowed_currencies:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported currency code '{order_in.currency}'. Supported currencies: {', '.join(sorted(allowed_currencies))}."
+        )
+
+    if not order_in.item_name or not order_in.item_name.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Item name cannot be empty.")
 
     try:
         result = await paypal_service.create_order(
@@ -209,6 +232,9 @@ async def capture_paypal_order(
     Verifies amount, currency, and capture status with PayPal.
     Screens the resulting transaction with PayShield AI Risk Engine.
     """
+    if not order_id or not order_id.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order ID cannot be empty.")
+
     db_order = db.query(PayPalOrder).filter(PayPalOrder.paypal_order_id == order_id).first()
     if not db_order:
         raise HTTPException(
@@ -216,18 +242,29 @@ async def capture_paypal_order(
             detail=f"Order '{order_id}' not found. Capture requires a valid, pre-created order."
         )
 
-    # Merchant ownership check: Prevent cross-merchant order capturing
-    if db_order.user_id is not None and current_user is not None and db_order.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access forbidden: You cannot capture an order belonging to another merchant account."
-        )
+    # Merchant ownership check: Prevent cross-merchant or unauthenticated capturing of merchant orders
+    if db_order.user_id is not None:
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required: This order belongs to a registered merchant."
+            )
+        if current_user.id != db_order.user_id and current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access forbidden: You cannot capture an order belonging to another merchant account."
+            )
 
-    # Rejection of failed orders
+    # Rejection of failed or cancelled orders
     if db_order.status == "FAILED":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Order is marked as FAILED and cannot be captured."
+        )
+    if db_order.status == "CANCELLED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Order was cancelled and cannot be captured."
         )
 
     # Idempotent return for already captured orders
@@ -336,8 +373,8 @@ async def capture_paypal_order(
         shipping_country="US",
         device_fingerprint=f"pp-sdk-{order_id[-6:]}",
         items_json=items_json,
-        is_synthetic=False,
-        source="PAYPAL_SANDBOX",
+        is_synthetic=(capture_res.get("mode") != "live_sandbox"),
+        source="PAYPAL_SANDBOX" if capture_res.get("mode") == "live_sandbox" else "SIMULATOR_SANDBOX",
         provider="PAYPAL",
         provider_order_id=order_id,
         provider_transaction_id=capture_res.get("capture_id"),

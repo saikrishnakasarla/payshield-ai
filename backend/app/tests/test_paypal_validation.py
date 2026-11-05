@@ -94,12 +94,13 @@ async def test_paypal_simulator_mode_create_and_capture():
 async def test_update_paypal_credentials():
     db = SessionLocal()
     try:
+        merchant_user = User(id=1, email="merchant@example.com", role="merchant", full_name="Merchant Owner")
         creds = PayPalCredentialsUpdateRequest(
             client_id="test_client_id_demo_sandbox_12345",
             client_secret="test_secret_demo_sandbox_67890",
             mock_simulator=True
         )
-        res = await update_paypal_credentials(creds, None, db)
+        res = await update_paypal_credentials(creds, merchant_user, db)
         assert "client_id_preview" in res
         assert "test_cli" in res["client_id_preview"]
     finally:
@@ -107,7 +108,8 @@ async def test_update_paypal_credentials():
 
 
 def test_get_paypal_credentials():
-    data = get_paypal_credentials(current_user=None)
+    merchant_user = User(id=1, email="merchant@example.com", role="merchant", full_name="Merchant Owner")
+    data = get_paypal_credentials(current_user=merchant_user)
     assert "is_configured" in data
     assert "client_id_preview" in data
     assert "mock_simulator" in data
@@ -145,8 +147,8 @@ async def test_cross_merchant_order_capture_rejected():
     db = SessionLocal()
     try:
         # Create merchant A and merchant B mock objects
-        merchant_a = User(id=101, email="merchant_a@example.com")
-        merchant_b = User(id=102, email="merchant_b@example.com")
+        merchant_a = User(id=101, email="merchant_a@example.com", role="merchant")
+        merchant_b = User(id=102, email="merchant_b@example.com", role="merchant")
 
         req = PayPalOrderCreateRequest(
             amount=75.0,
