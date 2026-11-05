@@ -19,16 +19,6 @@
       }
     },
     {
-      "source": "/assets/(.*)",
-      "destination": {
-        "service": "frontend"
-      }
-    },
-    {
-      "source": "/((?!api/|assets/|.*\\..*).*)",
-      "destination": "/index.html"
-    },
-    {
       "source": "/(.*)",
       "destination": {
         "service": "frontend"
