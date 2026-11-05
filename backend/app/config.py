@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     # Risk Score Boundaries
     MEDIUM_RISK_SCORE: int = 35
     HIGH_RISK_SCORE: int = 70
+    CRITICAL_RISK_SCORE: int = 85
 
     @model_validator(mode="after")
     def validate_production_security(self):

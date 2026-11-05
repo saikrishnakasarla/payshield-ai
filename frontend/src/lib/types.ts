@@ -1,4 +1,4 @@
-export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type ReviewStatus = 'UNREVIEWED' | 'REVIEWED_SAFE' | 'ESCALATED_HUMAN_REVIEW';
 
 export interface OrderItem {
@@ -128,6 +128,8 @@ export interface RiskAnalysis {
   ai_recommended_steps: string[];
   model_used: string;
   created_at?: string;
+  is_fallback?: boolean;
+  recommended_action?: 'approve' | 'verify_shipping' | 'manual_review';
   // Calibrated ML classification
   ml_fraud_probability?: number;
   hybrid_score?: number;

@@ -174,7 +174,7 @@ def test_paypal_transaction_has_complete_fields():
     assert txn["is_synthetic"] is False
     assert txn["payment_status"] == "COMPLETED"
     assert txn["risk_score"] is not None
-    assert txn["risk_level"] in ("LOW", "MEDIUM", "HIGH")
+    assert txn["risk_level"] in ("LOW", "MEDIUM", "HIGH", "CRITICAL")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

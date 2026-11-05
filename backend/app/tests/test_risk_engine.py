@@ -98,7 +98,7 @@ def test_risk_score_is_bounded_zero_to_hundred():
     score, level, triggered = engine.evaluate_transaction(extreme_txn, history)
     assert score <= 100
     assert score >= 0
-    assert level == "HIGH"
+    assert level in ("HIGH", "CRITICAL")
     assert len(triggered) >= 3
 
 def test_duplicate_reference_rule():

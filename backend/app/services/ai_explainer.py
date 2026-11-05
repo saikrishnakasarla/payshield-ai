@@ -65,18 +65,35 @@ class AIExplainerService:
         ml_tier = ml_prediction.get("ml_risk_tier", "LOW") if ml_prediction else "LOW"
         attributions = ml_prediction.get("top_attributions", []) if ml_prediction else []
 
+        # PII Minimization: Mask email, omit raw IP address, sanitize device fingerprint
+        raw_email = txn_data.get("customer_email")
+        masked_email = None
+        if raw_email and "@" in str(raw_email):
+            parts = str(raw_email).split("@", 1)
+            uname = parts[0]
+            masked_uname = (uname[0] + "***" + (uname[-1] if len(uname) > 1 else "")) if uname else "***"
+            masked_email = f"{masked_uname}@{parts[1]}"
+
+        raw_device = str(txn_data.get("device_fingerprint") or "").lower()
+        if any(w in raw_device for w in ("headless", "tor", "ghost", "puppet", "selenium")):
+            sanitized_device = "flagged_automation_signature"
+        elif any(w in raw_device for w in ("safari", "chrome", "firefox", "edge", "ios", "android")):
+            sanitized_device = "verified_browser_user_agent"
+        else:
+            sanitized_device = "standard_browser_signature"
+
         return {
             "verified_gateway_facts": {
                 "amount": amount,
                 "currency": txn_data.get("currency", "USD"),
                 "customer_baseline_avg": baseline,
                 "amount_to_baseline_ratio": f"{ratio}x",
-                "customer_email": txn_data.get("customer_email"),
+                "customer_email_masked": masked_email,
                 "account_age_days": txn_data.get("account_age_days", 90),
                 "prior_failed_attempts_24h": txn_data.get("failed_attempts_24h", 0),
                 "billing_country": txn_data.get("billing_country", "US"),
                 "ip_country": txn_data.get("ip_country", "US"),
-                "device_fingerprint": txn_data.get("device_fingerprint", "standard-browser"),
+                "device_category": sanitized_device,
                 "items_count": items_count,
                 "items_stated_total": items_total,
                 "payment_gateway_status": txn_data.get("payment_status", "COMPLETED")
@@ -171,6 +188,7 @@ RESPONSE JSON SCHEMA:
                             "recommended_action": validated.recommended_action,
                             "model_used": self.model,
                             "explanation_source": "gemini",
+                            "is_fallback": False,
                             "fact_registry": facts
                         }
         except Exception as e:
@@ -202,6 +220,13 @@ RESPONSE JSON SCHEMA:
         """Synchronous grounded narrative generator."""
         facts = self.build_fact_registry(txn_data, score, risk_level, triggered_rules, ml_prediction)
         return self._generate_rule_and_ml_fallback(txn_data, score, risk_level, triggered_rules, ml_prediction, facts)
+
+    def explain_risk(self, txn_dict: Dict[str, Any], risk_eval: Dict[str, Any]) -> Dict[str, Any]:
+        """Convenience wrapper for synchronous payment validation pipelines."""
+        score = risk_eval.get("score", 0)
+        risk_level = risk_eval.get("risk_level", "LOW")
+        triggered = risk_eval.get("triggered_rules", [])
+        return self.generate_explanation_sync(txn_dict, score, risk_level, triggered)
 
     def _generate_rule_and_ml_fallback(
         self,
@@ -251,6 +276,7 @@ RESPONSE JSON SCHEMA:
                 "recommended_action": action,
                 "model_used": "RandomForest-v1.0 (Grounded Fallback)",
                 "explanation_source": "grounded_rule_ml_fallback",
+                "is_fallback": True,
                 "fact_registry": fact_registry
             }
 
@@ -293,6 +319,7 @@ RESPONSE JSON SCHEMA:
             "recommended_action": action,
             "model_used": "RandomForest-v1.0 (Grounded Fallback)",
             "explanation_source": "grounded_rule_ml_fallback",
+            "is_fallback": True,
             "fact_registry": fact_registry
         }
 

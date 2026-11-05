@@ -73,19 +73,24 @@ class RiskEngine:
 
         # Evaluate ML model
         ml_prediction = self.ml_model.predict_fraud_probability(txn_data, historical)
-        prob = ml_prediction["fraud_probability"]
+        prob = ml_prediction.get("fraud_probability", 0.0)
 
         # Calculate Hybrid Ensemble Score
-        # 60% weight on calibrated ML probability, 40% weight on rule heuristics
-        hybrid_score = int(round((prob * 100 * 0.60) + (bounded_score * 0.40)))
-        hybrid_score = max(0, min(100, hybrid_score))
+        if ml_prediction.get("is_fallback"):
+            hybrid_score = bounded_score
+        else:
+            # 60% weight on calibrated ML probability, 40% weight on rule heuristics
+            hybrid_score = int(round((prob * 100 * 0.60) + (bounded_score * 0.40)))
+            hybrid_score = max(0, min(100, hybrid_score))
 
         ml_prediction["hybrid_score"] = hybrid_score
         ml_prediction["rule_score"] = bounded_score
 
-        # Determine consolidated risk level
-        # If either ML probability is high (> 0.70) or rule score is high (>= 70), risk is HIGH
-        if bounded_score >= settings.HIGH_RISK_SCORE or prob >= 0.70:
+        # Determine consolidated risk level (4-tier architecture)
+        critical_threshold = getattr(settings, "CRITICAL_RISK_SCORE", 85)
+        if bounded_score >= critical_threshold or prob >= 0.85:
+            risk_level = "CRITICAL"
+        elif bounded_score >= settings.HIGH_RISK_SCORE or prob >= 0.70:
             risk_level = "HIGH"
         elif bounded_score >= settings.MEDIUM_RISK_SCORE or prob >= 0.35:
             risk_level = "MEDIUM"

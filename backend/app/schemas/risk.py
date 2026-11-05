@@ -29,6 +29,8 @@ class RiskAnalysisResponse(BaseModel):
     ai_recommended_steps: List[str]
     model_used: str
     created_at: datetime
+    is_fallback: Optional[bool] = False
+    recommended_action: Optional[str] = "manual_review"
     
     disclaimer: str = (
         "Demonstration Notice: Risk scores are approximations generated "

@@ -24,6 +24,11 @@ export const RiskBadge: React.FC<RiskBadgeProps> = ({ level, score, size = 'md' 
       dot: 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]',
       label: 'HIGH RISK',
     },
+    CRITICAL: {
+      bg: 'bg-red-950/40 text-red-400 border-red-500/60 shadow-[0_0_12px_rgba(239,68,68,0.25)]',
+      dot: 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,1)] animate-ping',
+      label: 'CRITICAL RISK',
+    },
   };
 
   const config = configs[level] || configs.LOW;

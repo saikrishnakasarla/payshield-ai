@@ -36,6 +36,11 @@ export const AIExplanationCard: React.FC<AIExplanationCardProps> = ({
               <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                 {analysis.model_used.includes('gemini') ? 'Powered by Gemini' : 'Grounded Fact Explainer'}
               </span>
+              {analysis.is_fallback && (
+                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                  Fallback Mode
+                </span>
+              )}
             </h3>
           </div>
         </div>

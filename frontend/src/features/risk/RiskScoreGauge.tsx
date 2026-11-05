@@ -16,6 +16,7 @@ export const RiskScoreGauge: React.FC<RiskScoreGaugeProps> = ({ score, level }) 
 
   const getColor = (lvl: RiskLevel) => {
     switch (lvl) {
+      case 'CRITICAL': return '#DC2626';
       case 'HIGH': return '#F43F5E';
       case 'MEDIUM': return '#F59E0B';
       default: return '#10B981';

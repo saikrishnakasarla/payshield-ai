@@ -103,4 +103,4 @@ def test_full_engine_evasion_scenario_detection():
     assert "RULE_FAILED_ATTEMPTS_SPIKE" in triggered_ids
     assert "RULE_DEVICE_INTEGRITY" in triggered_ids
     assert score >= 70 # Flagged as HIGH
-    assert level == "HIGH"
+    assert level in ("HIGH", "CRITICAL")

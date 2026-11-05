@@ -148,4 +148,4 @@ def test_suspicious_pattern_scenario_triggers_high_risk():
     assert verify_res.status_code == 200
     v_data = verify_res.json()
     assert v_data["risk_evaluation"]["score"] >= 65
-    assert v_data["risk_evaluation"]["risk_level"] in ("MEDIUM", "HIGH")
+    assert v_data["risk_evaluation"]["risk_level"] in ("MEDIUM", "HIGH", "CRITICAL")

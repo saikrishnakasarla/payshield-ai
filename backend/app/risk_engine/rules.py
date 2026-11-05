@@ -49,8 +49,19 @@ class BaselineAmountRule(BaseRule):
     category = "AMOUNT_ANOMALY"
 
     def evaluate(self, txn_data: Dict[str, Any], historical_txns: List[Dict[str, Any]]) -> RuleResult:
+        raw_baseline = txn_data.get("customer_baseline_amount")
+        if raw_baseline is None or safe_float(raw_baseline, 0.0) <= 0.0:
+            return RuleResult(
+                rule_id=self.rule_id,
+                rule_name=self.rule_name,
+                description=self.description,
+                score_points=0,
+                category=self.category,
+                evidence="No prior customer purchase baseline recorded; not penalized.",
+                triggered=False
+            )
         amount = safe_float(txn_data.get("amount"), 0.0)
-        baseline = safe_float(txn_data.get("customer_baseline_amount"), 100.0)
+        baseline = safe_float(raw_baseline, 0.0)
         multiplier = 3.0
 
         if amount > 0 and baseline > 0 and amount >= (baseline * multiplier):
@@ -321,11 +332,24 @@ class AccountAgeAnomalyRule(BaseRule):
     category = "ACCOUNT_MATURITY"
 
     def evaluate(self, txn_data: Dict[str, Any], historical_txns: List[Dict[str, Any]]) -> RuleResult:
-        account_age = safe_float(txn_data.get("account_age_days"), 90.0)
+        raw_age = txn_data.get("account_age_days")
+        if raw_age is None:
+            return RuleResult(
+                rule_id=self.rule_id,
+                rule_name=self.rule_name,
+                description=self.description,
+                score_points=0,
+                category=self.category,
+                evidence="Account age unknown; not penalized as new account anomaly.",
+                triggered=False
+            )
+        account_age = safe_float(raw_age, 90.0)
         amount = safe_float(txn_data.get("amount"), 0.0)
-        baseline = safe_float(txn_data.get("customer_baseline_amount"), 100.0)
+        raw_baseline = txn_data.get("customer_baseline_amount")
+        baseline = safe_float(raw_baseline, 0.0) if raw_baseline is not None else None
 
-        if account_age < 7.0 and (amount >= 200.0 or amount >= (baseline * 2.0)):
+        threshold_met = (amount >= 200.0) or (baseline is not None and baseline > 0 and amount >= (baseline * 2.0))
+        if account_age < 7.0 and threshold_met:
             evidence = (
                 f"Customer account is newly registered ({int(account_age)} day(s) old) "
                 f"initiating an elevated ${amount:,.2f} order."
@@ -391,16 +415,20 @@ class SubThresholdStructuringRule(BaseRule):
 
     def evaluate(self, txn_data: Dict[str, Any], historical_txns: List[Dict[str, Any]]) -> RuleResult:
         amount = safe_float(txn_data.get("amount"), 0.0)
-        baseline = safe_float(txn_data.get("customer_baseline_amount"), 100.0)
-        ratio = (amount / baseline) if baseline > 0 else 1.0
-
-        # Evasion pattern: attacker knows threshold is 3.0x or $100 and prices at $95-$99.99 or 2.7x-2.99x
+        raw_baseline = txn_data.get("customer_baseline_amount")
+        
         is_subthreshold_amount = (90.0 <= amount <= 99.99) or (950.0 <= amount <= 999.99)
-        is_subthreshold_ratio = (2.7 <= ratio < 3.0)
+        is_subthreshold_ratio = False
+        ratio_str = ""
+        if raw_baseline is not None and safe_float(raw_baseline, 0.0) > 0:
+            baseline = safe_float(raw_baseline, 0.0)
+            ratio = amount / baseline
+            is_subthreshold_ratio = (2.7 <= ratio < 3.0)
+            ratio_str = f" ({ratio:.2f}x baseline)"
 
         if is_subthreshold_amount or is_subthreshold_ratio:
             evidence = (
-                f"Structuring pattern detected: Order value of ${amount:,.2f} ({ratio:.2f}x baseline) "
+                f"Structuring pattern detected: Order value of ${amount:,.2f}{ratio_str} "
                 f"hovers immediately below common automated screening thresholds."
             )
             return RuleResult(

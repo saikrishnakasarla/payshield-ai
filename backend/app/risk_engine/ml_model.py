@@ -170,6 +170,7 @@ class FraudClassificationModel:
             structuring
         ], dtype=np.float32)
 
+        features = np.nan_to_num(features, nan=0.0, posinf=1.0, neginf=0.0)
         return features.reshape(1, -1)
 
     def train_and_calibrate(self, n_samples: int = 12000, random_state: int = 42):
@@ -401,49 +402,73 @@ class FraudClassificationModel:
         Executes ML inference on a transaction.
         Returns:
             - fraud_probability: float [0.0 - 1.0]
-            - risk_tier: LOW, MEDIUM, HIGH
+            - ml_risk_tier: LOW, MEDIUM, HIGH, CRITICAL
             - feature_contributions: local SHAP-like feature attributions
             - comparative_scores: ML Probability vs Rule Points
         """
         if self.model is None:
-            self._initialize_model()
+            try:
+                self._initialize_model()
+            except Exception as e:
+                logger.error(f"Failed to initialize ML model: {e}")
+                return {
+                    "fraud_probability": 0.0,
+                    "ml_risk_tier": "UNKNOWN",
+                    "model_version": "RandomForest-fallback",
+                    "top_attributions": [],
+                    "all_attributions": [],
+                    "is_fallback": True,
+                    "fallback_reason": str(e)
+                }
 
-        X = self.extract_features(txn_data, historical_txns)
-        prob = float(self.model.predict_proba(X)[0, 1])
+        try:
+            X = self.extract_features(txn_data, historical_txns)
+            prob = float(self.model.predict_proba(X)[0, 1])
 
-        # Calibrate risk tier
-        if prob >= 0.70:
-            tier = "HIGH"
-        elif prob >= 0.35:
-            tier = "MEDIUM"
-        else:
-            tier = "LOW"
+            # Calibrate risk tier (4 tiers)
+            if prob >= 0.85:
+                tier = "CRITICAL"
+            elif prob >= 0.70:
+                tier = "HIGH"
+            elif prob >= 0.35:
+                tier = "MEDIUM"
+            else:
+                tier = "LOW"
 
-        # Calculate directional local feature attributions
-        # Feature value * global importance weight
-        feat_vals = X[0]
-        attributions = []
-        for name, val in zip(self.feature_names, feat_vals):
-            base_imp = self.metadata.get("feature_importances", {}).get(name, 0.1)
-            # Impact score relative to neutral baseline
-            impact = round(float(val * base_imp), 4)
-            attributions.append({
-                "feature": name,
-                "value": round(float(val), 3),
-                "importance_weight": base_imp,
-                "risk_contribution": impact
-            })
+            # Calculate directional local feature attributions
+            feat_vals = X[0]
+            attributions = []
+            for name, val in zip(self.feature_names, feat_vals):
+                base_imp = self.metadata.get("feature_importances", {}).get(name, 0.1)
+                impact = round(float(val * base_imp), 4)
+                attributions.append({
+                    "feature": name,
+                    "value": round(float(val), 3),
+                    "importance_weight": base_imp,
+                    "risk_contribution": impact
+                })
 
-        # Sort attributions descending by risk contribution
-        attributions.sort(key=lambda x: x["risk_contribution"], reverse=True)
+            attributions.sort(key=lambda x: x["risk_contribution"], reverse=True)
 
-        return {
-            "fraud_probability": round(prob, 4),
-            "ml_risk_tier": tier,
-            "model_version": "RandomForest-v1.0-KaggleBenchmark",
-            "top_attributions": attributions[:5],
-            "all_attributions": attributions
-        }
+            return {
+                "fraud_probability": round(prob, 4),
+                "ml_risk_tier": tier,
+                "model_version": "RandomForest-v1.0-KaggleBenchmark",
+                "top_attributions": attributions[:5],
+                "all_attributions": attributions,
+                "is_fallback": False
+            }
+        except Exception as e:
+            logger.warning(f"ML inference error: {e}. Returning safe fallback.")
+            return {
+                "fraud_probability": 0.0,
+                "ml_risk_tier": "UNKNOWN",
+                "model_version": "RandomForest-fallback",
+                "top_attributions": [],
+                "all_attributions": [],
+                "is_fallback": True,
+                "fallback_reason": str(e)
+            }
 
 # Global singleton
 fraud_ml_model = FraudClassificationModel()

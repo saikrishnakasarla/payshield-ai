@@ -58,6 +58,7 @@ export const TransactionFilters: React.FC<TransactionFiltersProps> = ({
             className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer font-mono"
           >
             <option value="ALL" className="bg-[#121721]">All Tiers</option>
+            <option value="CRITICAL" className="bg-[#121721]">Critical Risk</option>
             <option value="HIGH" className="bg-[#121721]">High Risk</option>
             <option value="MEDIUM" className="bg-[#121721]">Medium Risk</option>
             <option value="LOW" className="bg-[#121721]">Low Risk</option>
