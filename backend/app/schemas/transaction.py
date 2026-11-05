@@ -13,6 +13,7 @@ class TransactionBase(BaseModel):
     customer_id: str
     customer_name: str
     customer_email: str
+    payment_status: Optional[str] = "COMPLETED"
     customer_baseline_amount: Optional[float] = 100.0
     customer_baseline_orders: Optional[int] = 5
     account_age_days: Optional[int] = 90

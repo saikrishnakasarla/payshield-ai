@@ -58,6 +58,14 @@ def get_system_settings(current_user: User = Depends(get_optional_current_user))
         }
     }
 
+@router.get("/settings/diagnostics")
+def get_system_diagnostics():
+    """
+    Safe configuration and operational diagnostics for SRE inspection.
+    Exposes runtime status without secrets or private tokens.
+    """
+    return settings.get_public_diagnostics()
+
 @router.post("/settings/thresholds")
 def update_thresholds(
     req: ThresholdUpdateRequest,
@@ -88,14 +96,16 @@ def reset_demo_database(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if settings.is_production:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Database reset is prohibited in production environment."
+        )
     if current_user.role not in ("merchant", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access forbidden: Only merchants and administrators can reset the demo database."
         )
-    """
-    Safely resets synthetic demo transactions back to clean seed state. Requires authenticated merchant or admin.
-    """
     res = seed_database(db, force=True)
     return {
         "status": "success",

@@ -453,7 +453,7 @@ async def create_transaction(
         timestamp=txn_dict["timestamp"],
         amount=txn_in.amount,
         currency=txn_in.currency,
-        payment_status=txn_in.payment_status or "COMPLETED",
+        payment_status=getattr(txn_in, "payment_status", "COMPLETED") or "COMPLETED",
         customer_id=txn_in.customer_id,
         customer_name=txn_in.customer_name,
         customer_email=txn_in.customer_email,
