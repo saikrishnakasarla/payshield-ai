@@ -39,7 +39,14 @@ class PayPalService:
             return False
         return True
 
+    @property
+    def is_production(self) -> bool:
+        env_lower = settings.APP_ENV.lower()
+        return env_lower in ("production", "prod") or not settings.DEBUG
+
     def is_mock_mode(self) -> bool:
+        if self.is_production:
+            return False
         if not self.is_configured():
             return True
         return settings.PAYPAL_MOCK_SIMULATOR
@@ -127,6 +134,13 @@ class PayPalService:
             except httpx.RequestError as e:
                 logger.error(f"PayPal create order network exception: {e}")
                 raise RuntimeError(f"Failed to communicate with PayPal Sandbox API: {e}")
+
+        # In production environments, simulator fallback is strictly forbidden
+        if self.is_production:
+            raise RuntimeError(
+                "Production security violation: PayPal simulator fallback is strictly forbidden in production. "
+                "Real PayPal credentials (PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET) must be configured."
+            )
 
         # If credentials not configured, check if explicit mock simulator is permitted
         if not settings.PAYPAL_MOCK_SIMULATOR:
@@ -222,6 +236,16 @@ class PayPalService:
                     "verified": False,
                     "mode": "live_sandbox"
                 }
+
+        # In production environments, simulator capture is strictly forbidden
+        if self.is_production and (order_id.startswith("PAYPAL-MOCK-") or not token):
+            return {
+                "order_id": order_id,
+                "status": "FAILED",
+                "error": "Production security violation: PayPal simulator execution is strictly forbidden in production.",
+                "verified": False,
+                "mode": "none"
+            }
 
         # Offline Mock Simulator execution (only if enabled)
         if not settings.PAYPAL_MOCK_SIMULATOR and not order_id.startswith("PAYPAL-MOCK-"):

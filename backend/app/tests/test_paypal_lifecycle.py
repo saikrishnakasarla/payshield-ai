@@ -528,3 +528,43 @@ def test_15_webhook_verification_and_reconciliation():
             assert wh_dup.json()["status"] == "duplicate"
     finally:
         db.close()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 16. Prevent Simulator Fallback in Production
+# ─────────────────────────────────────────────────────────────────────────────
+def test_16_prevent_simulator_fallback_in_production():
+    """Confirms that in production environment, simulator fallback is strictly forbidden."""
+    from app.services.paypal_service import paypal_service
+    with patch.object(settings, "APP_ENV", "production"):
+        with patch.object(settings, "DEBUG", False):
+            # 1. is_mock_mode returns False in production
+            assert paypal_service.is_mock_mode() is False
+
+            # 2. Creating order without real PayPal credentials raises/rejects with 400
+            with patch.object(paypal_service, "get_access_token", return_value=None):
+                res = client.post(
+                    "/api/paypal/orders",
+                    json={"amount": 45.0, "currency": "USD", "item_name": "Prod Attempt"}
+                )
+                assert res.status_code == 400
+                assert "Production security violation" in res.json()["detail"]
+
+            # 3. Capturing simulated order in production is rejected
+            db = SessionLocal()
+            try:
+                unique_sim_id = f"PAYPAL-MOCK-PROD-{uuid.uuid4().hex[:8].upper()}"
+                mock_ord = PayPalOrder(
+                    paypal_order_id=unique_sim_id,
+                    status="CREATED",
+                    amount=50.0,
+                    currency="USD"
+                )
+                db.add(mock_ord)
+                db.commit()
+
+                sim_cap = client.post(f"/api/paypal/orders/{unique_sim_id}/capture")
+                assert sim_cap.status_code == 400
+                assert "Production security violation" in sim_cap.json()["detail"]
+            finally:
+                db.close()

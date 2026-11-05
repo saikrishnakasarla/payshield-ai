@@ -84,6 +84,9 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "FATAL SECURITY VIOLATION: SECRET_KEY must be at least 32 characters long for production security."
                 )
+            # Prevent simulator fallback in production environments
+            if self.PAYPAL_MOCK_SIMULATOR:
+                object.__setattr__(self, "PAYPAL_MOCK_SIMULATOR", False)
         return self
 
     model_config = ConfigDict(env_file=".env", extra="allow")
