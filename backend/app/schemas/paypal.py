@@ -22,6 +22,7 @@ class PayPalOrderResponse(BaseModel):
     payer_email: Optional[str] = None
     payer_name: Optional[str] = None
     transaction_id: Optional[int] = None
+    approval_url: Optional[str] = None
     verified_by_backend: bool = True
     risk_evaluation: Optional[Dict[str, Any]] = None
     message: str = "Order processed successfully in PayPal Sandbox"

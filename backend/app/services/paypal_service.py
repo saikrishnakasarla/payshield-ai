@@ -35,7 +35,9 @@ class PayPalService:
             return False
         if c_id in ("", "placeholder", "demo", "mock", "test") or c_sec in ("", "placeholder", "demo", "mock", "test"):
             return False
-        if c_id.startswith("test_") or c_id.startswith("mock_") or "fake" in c_id:
+        if c_id.startswith("test_") or c_id.startswith("mock_") or "fake" in c_id or c_id.startswith("your_"):
+            return False
+        if c_sec.startswith("your_"):
             return False
         return True
 
@@ -50,6 +52,36 @@ class PayPalService:
         if not self.is_configured():
             return True
         return settings.PAYPAL_MOCK_SIMULATOR
+
+    def get_diagnostics(self) -> Dict[str, Any]:
+        """
+        Safe diagnostic report of PayPal Sandbox readiness without exposing secrets.
+        """
+        c_id = self.effective_client_id
+        c_sec = self.effective_client_secret
+        has_id = bool(c_id and not c_id.startswith("your_") and c_id not in ("placeholder", "demo", "mock"))
+        has_sec = bool(c_sec and not c_sec.startswith("your_") and c_sec not in ("placeholder", "demo", "mock"))
+
+        masked_id = (c_id[:6] + "..." + c_id[-4:]) if (has_id and len(c_id) > 10) else ("CONFIGURED" if has_id else "NOT_CONFIGURED")
+        masked_sec = f"[CONFIGURED - {len(c_sec)} chars]" if has_sec else "NOT_CONFIGURED"
+
+        return {
+            "mode": self.mode,
+            "environment": settings.PAYPAL_ENV,
+            "base_url": self.base_url,
+            "client_id_status": masked_id,
+            "client_secret_status": masked_sec,
+            "webhook_id_configured": bool(settings.PAYPAL_WEBHOOK_ID and not settings.PAYPAL_WEBHOOK_ID.startswith("your_")),
+            "mock_simulator_enabled": settings.PAYPAL_MOCK_SIMULATOR,
+            "is_configured": self.is_configured(),
+            "is_production": self.is_production,
+            "endpoints": {
+                "oauth_token": f"{self.base_url}/v1/oauth2/token",
+                "orders_create": f"{self.base_url}/v2/checkout/orders",
+                "orders_capture": f"{self.base_url}/v2/checkout/orders/{{id}}/capture",
+                "webhook_verify": f"{self.base_url}/v1/notifications/verify-webhook-signature"
+            }
+        }
 
     async def get_access_token(self) -> Optional[str]:
         if not self.is_configured() or self.is_mock_mode():
@@ -117,11 +149,17 @@ class PayPalService:
                     res = await client.post(f"{self.base_url}/v2/checkout/orders", headers=headers, json=payload)
                     if res.status_code in (200, 201):
                         order_data = res.json()
+                        approval_url = None
+                        for link in order_data.get("links", []):
+                            if link.get("rel") == "approve":
+                                approval_url = link.get("href")
+                                break
                         return {
                             "order_id": order_data.get("id"),
                             "status": order_data.get("status"),
                             "amount": amount,
                             "currency": currency,
+                            "approval_url": approval_url,
                             "raw_response": order_data,
                             "mode": "live_sandbox"
                         }
@@ -155,6 +193,7 @@ class PayPalService:
             "status": "CREATED",
             "amount": amount,
             "currency": currency,
+            "approval_url": f"https://www.sandbox.paypal.com/checkoutnow?token={simulated_id}",
             "raw_response": {
                 "id": simulated_id,
                 "status": "CREATED",

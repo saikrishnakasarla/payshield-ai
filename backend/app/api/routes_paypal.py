@@ -153,6 +153,14 @@ def get_paypal_status():
         api_endpoint=settings.PAYPAL_BASE_URL
     )
 
+@router.get("/diagnostics", response_model=Dict[str, Any])
+def get_paypal_diagnostics():
+    """
+    Returns comprehensive diagnostic information for PayPal Sandbox integration.
+    Never exposes client secrets or access tokens.
+    """
+    return paypal_service.get_diagnostics()
+
 @router.post("/orders", response_model=PayPalOrderResponse)
 async def create_paypal_order(
     order_in: PayPalOrderCreateRequest,
@@ -220,6 +228,7 @@ async def create_paypal_order(
         amount=order_in.amount,
         currency=order_in.currency.upper(),
         created_at=paypal_order.created_at,
+        approval_url=result.get("approval_url"),
         verified_by_backend=True,
         message=f"Order created on backend ({result.get('mode')}). Ready for buyer approval."
     )
